@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library"
@@ -22,18 +23,20 @@ import (
 )
 
 type UserUsecase struct {
-	userRepo       user.Repository
-	contextTimeout time.Duration
-	db             *sqlx.DB
+	userRepo           user.Repository
+	userpermissionRepo user.PermissionRepository
+	contextTimeout     time.Duration
+	db                 *sqlx.DB
 }
 
-func NewUserUsecase(db *sqlx.DB, userRepo user.Repository) user.Usecase {
+func NewUserUsecase(db *sqlx.DB, userRepo user.Repository, userpermissionRepo user.PermissionRepository) user.Usecase {
 	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
 
 	return &UserUsecase{
-		userRepo:       userRepo,
-		contextTimeout: timeoutContext,
-		db:             db,
+		userRepo:           userRepo,
+		userpermissionRepo: userpermissionRepo,
+		contextTimeout:     timeoutContext,
+		db:                 db,
 	}
 }
 
@@ -89,6 +92,20 @@ func (u *UserUsecase) Create(ctx *gin.Context, obj models.User) (*models.User, *
 		return nil, err
 	}
 
+	// create permission
+	var permssions []string
+	for _, v := range obj.Permission {
+		permssions = append(permssions, fmt.Sprintf(`%d`, v.ID))
+	}
+
+	var permissionParams models.FindAllUserPermissionParams
+	permissionParams.PermissionIDString = strings.Join(permssions, ",")
+	err = u.userpermissionRepo.CreateBunch(ctx, data.ID, permissionParams)
+	if err != nil {
+		err.Path = ".UserUsecase->Create()" + err.Path
+		return nil, err
+	}
+
 	return result, nil
 }
 
@@ -112,6 +129,26 @@ func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.User) (*mod
 	data.StatusID = obj.StatusID
 
 	result, err := u.userRepo.Update(ctx, data)
+	if err != nil {
+		err.Path = ".UserUsecase->Update()" + err.Path
+		return nil, err
+	}
+
+	// update permission
+	err = u.userpermissionRepo.DeleteByUserID(ctx, id)
+	if err != nil {
+		err.Path = ".UserUsecase->Update()" + err.Path
+		return nil, err
+	}
+
+	var permssions []string
+	for _, v := range obj.Permission {
+		permssions = append(permssions, fmt.Sprintf(`%d`, v.ID))
+	}
+
+	var permissionParams models.FindAllUserPermissionParams
+	permissionParams.PermissionIDString = strings.Join(permssions, ",")
+	err = u.userpermissionRepo.CreateBunch(ctx, data.ID, permissionParams)
 	if err != nil {
 		err.Path = ".UserUsecase->Update()" + err.Path
 		return nil, err

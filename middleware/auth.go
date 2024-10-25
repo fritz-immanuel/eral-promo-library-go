@@ -134,9 +134,9 @@ func Auth(c *gin.Context) {
 	rows, err := db.Query(`SELECT
   permission.http_method AS permission_http_method,
   permission.route AS permission_route
-  FROM user_permission
-  JOIN permission ON permission.id = user_permission.permission_id
-  WHERE package = 'Website' AND user_permission.user_id = ?
+  FROM user_permissions
+  JOIN permission ON permission.id = user_permissions.permission_id
+  WHERE package = 'Website' AND user_permissions.user_id = ?
   `, claimJWT["ID"])
 	if err != nil {
 		log.Fatal(err)

@@ -24,6 +24,8 @@ type User struct {
 	StatusID   string `json:"StatusID" db:"status_id"`
 
 	Status Status `json:"Status"`
+
+	Permission []*Permission `json:"Permission"`
 }
 
 type FindAllUserParams struct {

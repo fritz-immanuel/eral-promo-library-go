@@ -2,6 +2,7 @@ package user
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -39,7 +40,11 @@ func (h UserHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router 
 		data.NewMySQLStorage(db, "status", models.Status{}, data.MysqlConfig{}),
 	)
 
-	uUser := userUsecase.NewUserUsecase(db, userRepo)
+	userpermissionRepo := userRepository.NewUserPermissionRepository(
+		data.NewMySQLStorage(db, "user_permissions", models.UserPermission{}, data.MysqlConfig{}),
+	)
+
+	uUser := userUsecase.NewUserUsecase(db, userRepo, userpermissionRepo)
 
 	base := &UserHandler{UserUsecase: uUser, dataManager: dataManager}
 
@@ -139,6 +144,16 @@ func (h *UserHandler) Create(c *gin.Context) {
 	user.Password = fmt.Sprintf("%x", hash.Sum(nil))
 	user.BusinessID = c.PostForm("BusinessID")
 
+	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &user.Permission)
+	if errJson != nil {
+		response.Error(c, "Internal Server Error", http.StatusInternalServerError, types.Error{
+			Path:  ".UserHandler->Create()",
+			Error: errJson,
+			Type:  "convert-error",
+		})
+		return
+	}
+
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
 		dataUser, err = h.UserUsecase.Create(c, user)
 		if err != nil {
@@ -174,6 +189,16 @@ func (h *UserHandler) Update(c *gin.Context) {
 	user.Email = c.PostForm("Email")
 	user.Username = c.PostForm("Username")
 	user.BusinessID = c.PostForm("BusinessID")
+
+	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &user.Permission)
+	if errJson != nil {
+		response.Error(c, "Internal Server Error", http.StatusInternalServerError, types.Error{
+			Path:  ".UserHandler->Update()",
+			Error: errJson,
+			Type:  "convert-error",
+		})
+		return
+	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
 		data, err = h.UserUsecase.Update(c, id, user)
