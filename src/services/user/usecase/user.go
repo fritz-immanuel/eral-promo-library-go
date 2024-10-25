@@ -83,7 +83,6 @@ func (u *UserUsecase) Create(ctx *gin.Context, obj models.User) (*models.User, *
 	data.Email = obj.Email
 	data.Username = obj.Username
 	data.Password = obj.Password
-	data.BusinessID = obj.BusinessID
 	data.StatusID = models.DEFAULT_STATUS_CODE
 
 	result, err := u.userRepo.Create(ctx, &data)
@@ -125,7 +124,6 @@ func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.User) (*mod
 	data.Name = obj.Name
 	data.Email = obj.Email
 	data.Username = obj.Username
-	data.BusinessID = obj.BusinessID
 	data.StatusID = obj.StatusID
 
 	result, err := u.userRepo.Update(ctx, data)
@@ -224,7 +222,7 @@ func (u *UserUsecase) Login(ctx *gin.Context, creds models.UserLogin) (*models.U
 
 	user := users[0]
 
-	credentials := library.Credential{ID: user.ID, Username: user.Username, Name: user.Name, BusinessID: user.BusinessID, Type: "WebAdmin"}
+	credentials := library.Credential{ID: user.ID, Username: user.Username, Name: user.Name, Type: "WebAdmin"}
 
 	token, errorJwtSign := library.JwtSignString(credentials)
 	if errorJwtSign != nil {

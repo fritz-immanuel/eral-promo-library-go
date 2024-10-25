@@ -2,7 +2,7 @@ package models
 
 import "github.com/fritz-immanuel/eral-promo-library-go/library/types"
 
-type UserBulk struct {
+type EmployeeBulk struct {
 	ID       string `json:"ID" db:"id"`
 	Name     string `json:"Name" db:"name"`
 	Email    string `json:"Email" db:"email"`
@@ -13,7 +13,7 @@ type UserBulk struct {
 	StatusName string `json:"StatusName" db:"status_name"`
 }
 
-type User struct {
+type Employee struct {
 	ID       string `json:"ID" db:"id"`
 	Name     string `json:"Name" db:"name" validate:"required"`
 	Email    string `json:"Email" db:"email"`
@@ -26,25 +26,17 @@ type User struct {
 	Permission []*Permission `json:"Permission"`
 }
 
-type FindAllUserParams struct {
+type FindAllEmployeeParams struct {
 	FindAllParams types.FindAllParams
 	Email         string
 	Username      string
 	Password      string
 }
 
-type UserLogin struct {
+type EmployeeLogin struct {
 	ID       string `json:"ID"`
 	Name     string `json:"Name"`
 	Password string `json:"Password" validate:"required"`
 	Token    string `json:"Token"`
 	Username string `json:"Username" validate:"required"`
-}
-
-type UserLoginAPI struct {
-	Result UserLoginData `json:"result"`
-}
-
-type UserLoginData struct {
-	Data *UserLogin `json:"Data"`
 }

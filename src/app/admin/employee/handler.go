@@ -1,4 +1,4 @@
-package user
+package employee
 
 import (
 	"crypto/md5"
@@ -18,36 +18,36 @@ import (
 	"github.com/fritz-immanuel/eral-promo-library-go/library/http/response"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 
-	"github.com/fritz-immanuel/eral-promo-library-go/src/services/user"
+	"github.com/fritz-immanuel/eral-promo-library-go/src/services/employee"
 
-	userRepository "github.com/fritz-immanuel/eral-promo-library-go/src/services/user/repository"
-	userUsecase "github.com/fritz-immanuel/eral-promo-library-go/src/services/user/usecase"
+	employeeRepository "github.com/fritz-immanuel/eral-promo-library-go/src/services/employee/repository"
+	employeeUsecase "github.com/fritz-immanuel/eral-promo-library-go/src/services/employee/usecase"
 )
 
 var ()
 
-type UserHandler struct {
-	UserUsecase user.Usecase
-	dataManager *data.Manager
-	Result      gin.H
-	Status      int
+type EmployeeHandler struct {
+	EmployeeUsecase employee.Usecase
+	dataManager     *data.Manager
+	Result          gin.H
+	Status          int
 }
 
-func (h UserHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router *gin.Engine, v *gin.RouterGroup) {
-	userRepo := userRepository.NewUserRepository(
-		data.NewMySQLStorage(db, "users", models.User{}, data.MysqlConfig{}),
+func (h EmployeeHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router *gin.Engine, v *gin.RouterGroup) {
+	employeeRepo := employeeRepository.NewEmployeeRepository(
+		data.NewMySQLStorage(db, "employees", models.Employee{}, data.MysqlConfig{}),
 		data.NewMySQLStorage(db, "status", models.Status{}, data.MysqlConfig{}),
 	)
 
-	userpermissionRepo := userRepository.NewUserPermissionRepository(
-		data.NewMySQLStorage(db, "user_permissions", models.UserPermission{}, data.MysqlConfig{}),
+	employeepermissionRepo := employeeRepository.NewEmployeePermissionRepository(
+		data.NewMySQLStorage(db, "employee_permissions", models.EmployeePermission{}, data.MysqlConfig{}),
 	)
 
-	uUser := userUsecase.NewUserUsecase(db, userRepo, userpermissionRepo)
+	uEmployee := employeeUsecase.NewEmployeeUsecase(db, employeeRepo, employeepermissionRepo)
 
-	base := &UserHandler{UserUsecase: uUser, dataManager: dataManager}
+	base := &EmployeeHandler{EmployeeUsecase: uEmployee, dataManager: dataManager}
 
-	rs := v.Group("/users")
+	rs := v.Group("/employees")
 	{
 		rs.GET("", middleware.Auth, base.FindAll)
 		rs.GET("/:id", middleware.Auth, base.Find)
@@ -60,23 +60,18 @@ func (h UserHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router 
 		rs.PUT("/:id/status", middleware.Auth, base.UpdateStatus)
 	}
 
-	rsa := v.Group("/users/auth")
-	{
-		rsa.POST("/login", base.Login)
-	}
-
 	rss := v.Group("/statuses")
 	{
-		rss.GET("/users", base.FindStatus)
+		rss.GET("/employees", base.FindStatus)
 	}
 }
 
-func (h *UserHandler) FindAll(c *gin.Context) {
-	var params models.FindAllUserParams
+func (h *EmployeeHandler) FindAll(c *gin.Context) {
+	var params models.FindAllEmployeeParams
 	page, size := helpers.FilterFindAll(c)
 	filterFindAllParams := helpers.FilterFindAllParam(c)
 	params.FindAllParams = filterFindAllParams
-	datas, err := h.UserUsecase.FindAll(c, params)
+	datas, err := h.EmployeeUsecase.FindAll(c, params)
 	if err != nil {
 		if err.Error != data.ErrNotFound {
 			response.Error(c, err.Message, http.StatusInternalServerError, *err)
@@ -86,36 +81,36 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 
 	params.FindAllParams.Page = -1
 	params.FindAllParams.Size = -1
-	length, err := h.UserUsecase.Count(c, params)
+	length, err := h.EmployeeUsecase.Count(c, params)
 	if err != nil {
-		err.Path = ".UserHandler->FindAll()" + err.Path
+		err.Path = ".EmployeeHandler->FindAll()" + err.Path
 		if err.Error != data.ErrNotFound {
 			response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
 			return
 		}
 	}
 
-	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Ditampilkan", TotalData: length, Page: page, Size: size, Data: datas}
+	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditampilkan", TotalData: length, Page: page, Size: size, Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
 	c.JSON(h.Status, h.Result)
 }
 
-func (h *UserHandler) Find(c *gin.Context) {
+func (h *EmployeeHandler) Find(c *gin.Context) {
 	id := c.Param("id")
 
-	result, err := h.UserUsecase.Find(c, id)
+	result, err := h.EmployeeUsecase.Find(c, id)
 	if err != nil {
-		err.Path = ".UserHandler->Find()" + err.Path
+		err.Path = ".EmployeeHandler->Find()" + err.Path
 		if err.Error == data.ErrNotFound {
-			response.Error(c, "User not found", http.StatusUnprocessableEntity, *err)
+			response.Error(c, "Employee not found", http.StatusUnprocessableEntity, *err)
 			return
 		}
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Ditampilkan", Data: result}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditampilkan", Data: result}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -123,23 +118,23 @@ func (h *UserHandler) Find(c *gin.Context) {
 	c.JSON(http.StatusOK, h.Result)
 }
 
-func (h *UserHandler) Create(c *gin.Context) {
+func (h *EmployeeHandler) Create(c *gin.Context) {
 	var err *types.Error
-	var user models.User
-	var dataUser *models.User
+	var employee models.Employee
+	var dataEmployee *models.Employee
 
 	hash := md5.New()
 	io.WriteString(hash, c.PostForm("Password"))
 
-	user.Name = c.PostForm("Name")
-	user.Email = c.PostForm("Email")
-	user.Username = c.PostForm("Username")
-	user.Password = fmt.Sprintf("%x", hash.Sum(nil))
+	employee.Name = c.PostForm("Name")
+	employee.Email = c.PostForm("Email")
+	employee.Username = c.PostForm("Username")
+	employee.Password = fmt.Sprintf("%x", hash.Sum(nil))
 
-	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &user.Permission)
+	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &employee.Permission)
 	if errJson != nil {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, types.Error{
-			Path:  ".UserHandler->Create()",
+			Path:  ".EmployeeHandler->Create()",
 			Error: errJson,
 			Type:  "convert-error",
 		})
@@ -147,22 +142,22 @@ func (h *UserHandler) Create(c *gin.Context) {
 	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		dataUser, err = h.UserUsecase.Create(c, user)
+		dataEmployee, err = h.EmployeeUsecase.Create(c, employee)
 		if err != nil {
 			return err
 		}
 
-		dataUser.Password = ""
+		dataEmployee.Password = ""
 
 		return nil
 	})
 	if errTransaction != nil {
-		errTransaction.Path = ".UserHandler->Create()" + errTransaction.Path
+		errTransaction.Path = ".EmployeeHandler->Create()" + errTransaction.Path
 		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Ditambahkan", Data: dataUser}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditambahkan", Data: dataEmployee}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -170,21 +165,21 @@ func (h *UserHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, h.Result)
 }
 
-func (h *UserHandler) Update(c *gin.Context) {
+func (h *EmployeeHandler) Update(c *gin.Context) {
 	var err *types.Error
-	var user models.User
-	var data *models.User
+	var employee models.Employee
+	var data *models.Employee
 
 	id := c.Param("id")
 
-	user.Name = c.PostForm("Name")
-	user.Email = c.PostForm("Email")
-	user.Username = c.PostForm("Username")
+	employee.Name = c.PostForm("Name")
+	employee.Email = c.PostForm("Email")
+	employee.Username = c.PostForm("Username")
 
-	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &user.Permission)
+	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &employee.Permission)
 	if errJson != nil {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, types.Error{
-			Path:  ".UserHandler->Update()",
+			Path:  ".EmployeeHandler->Update()",
 			Error: errJson,
 			Type:  "convert-error",
 		})
@@ -192,7 +187,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		data, err = h.UserUsecase.Update(c, id, user)
+		data, err = h.EmployeeUsecase.Update(c, id, employee)
 		if err != nil {
 			return err
 		}
@@ -201,12 +196,12 @@ func (h *UserHandler) Update(c *gin.Context) {
 	})
 
 	if errTransaction != nil {
-		errTransaction.Path = ".UserHandler->Update()" + errTransaction.Path
+		errTransaction.Path = ".EmployeeHandler->Update()" + errTransaction.Path
 		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Ditambahkan", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditambahkan", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -214,9 +209,9 @@ func (h *UserHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, h.Result)
 }
 
-func (h *UserHandler) UpdatePassword(c *gin.Context) {
+func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 	var err *types.Error
-	var dataUser *models.User
+	var dataEmployee *models.Employee
 
 	id := c.Param("id")
 	var oldPassword = c.PostForm("OldPassword")
@@ -224,7 +219,7 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 
 	if newPassword == "" {
 		err = &types.Error{
-			Path:    ".UserHandler->UpdatePassword()",
+			Path:    ".EmployeeHandler->UpdatePassword()",
 			Message: "Password baru tidak boleh kosong",
 			Type:    "mysql-error",
 		}
@@ -234,7 +229,7 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 
 	if newPassword == oldPassword {
 		err = &types.Error{
-			Path:    ".UserHandler->UpdatePassword()",
+			Path:    ".EmployeeHandler->UpdatePassword()",
 			Message: "Password baru tidak boleh sama dengan password lama",
 			Type:    "mysql-error",
 		}
@@ -244,7 +239,7 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 
 	if newPassword != c.PostForm("ConfirmNewPassword") {
 		err = &types.Error{
-			Path:    ".UserHandler->UpdatePassword()",
+			Path:    ".EmployeeHandler->UpdatePassword()",
 			Message: "Gagal mengkonfirmasi password baru",
 			Type:    "mysql-error",
 		}
@@ -252,9 +247,9 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	modelUser, err := h.UserUsecase.Find(c, id)
+	modelEmployee, err := h.EmployeeUsecase.Find(c, id)
 	if err != nil {
-		err.Path = ".UserHandler->UpdatePassword()" + err.Path
+		err.Path = ".EmployeeHandler->UpdatePassword()" + err.Path
 		if err.Error == data.ErrNotFound {
 			response.Error(c, "Data not found", http.StatusUnprocessableEntity, *err)
 			return
@@ -262,14 +257,14 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
 	}
 
-	var currentPassword = modelUser.Password
+	var currentPassword = modelEmployee.Password
 	hash := md5.New()
 	io.WriteString(hash, oldPassword)
 	hashedOldPassword := fmt.Sprintf("%x", hash.Sum(nil))
 
 	if currentPassword != hashedOldPassword {
 		err = &types.Error{
-			Path:    ".UserHandler->UpdatePassword()",
+			Path:    ".EmployeeHandler->UpdatePassword()",
 			Message: "Incorrect Previous Password",
 			Type:    "mysql-error",
 		}
@@ -278,23 +273,23 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		dataUser, err = h.UserUsecase.UpdatePassword(c, id, newPassword)
+		dataEmployee, err = h.EmployeeUsecase.UpdatePassword(c, id, newPassword)
 		if err != nil {
 			return err
 		}
 
-		dataUser.Password = ""
+		dataEmployee.Password = ""
 
 		return nil
 	})
 
 	if errTransaction != nil {
-		errTransaction.Path = ".UserHandler->UpdatePassword()" + errTransaction.Path
+		errTransaction.Path = ".EmployeeHandler->UpdatePassword()" + errTransaction.Path
 		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Diperbarui", Data: dataUser}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Diperbarui", Data: dataEmployee}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -302,29 +297,29 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, h.Result)
 }
 
-func (h *UserHandler) ResetPassword(c *gin.Context) {
+func (h *EmployeeHandler) ResetPassword(c *gin.Context) {
 	var err *types.Error
-	var dataUser *models.User
+	var dataEmployee *models.Employee
 
 	id := c.Param("id")
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		dataUser, err = h.UserUsecase.UpdatePassword(c, id, "123456")
+		dataEmployee, err = h.EmployeeUsecase.UpdatePassword(c, id, "123456")
 		if err != nil {
 			return err
 		}
 
-		dataUser.Password = ""
+		dataEmployee.Password = ""
 
 		return nil
 	})
 	if errTransaction != nil {
-		errTransaction.Path = ".UserHandler->ResetPassword()" + errTransaction.Path
+		errTransaction.Path = ".EmployeeHandler->ResetPassword()" + errTransaction.Path
 		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "User berhasil direset password", Data: dataUser}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee berhasil direset password", Data: dataEmployee}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -332,28 +327,28 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, h.Result)
 }
 
-func (h *UserHandler) FindStatus(c *gin.Context) {
+func (h *EmployeeHandler) FindStatus(c *gin.Context) {
 	var datas []*models.Status
 	datas = append(datas, &models.Status{ID: models.STATUS_INACTIVE, Name: "Inactive"})
 	datas = append(datas, &models.Status{ID: models.STATUS_ACTIVE, Name: "Active"})
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Ditampilkan", Data: datas}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditampilkan", Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
 	c.JSON(http.StatusOK, h.Result)
 }
 
-func (h *UserHandler) UpdateStatus(c *gin.Context) {
+func (h *EmployeeHandler) UpdateStatus(c *gin.Context) {
 	var err *types.Error
-	var data *models.User
+	var data *models.Employee
 
-	userID := c.Param("id")
+	employeeID := c.Param("id")
 
 	newStatusID := c.PostForm("StatusID")
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		data, err = h.UserUsecase.UpdateStatus(c, userID, newStatusID)
+		data, err = h.EmployeeUsecase.UpdateStatus(c, employeeID, newStatusID)
 		if err != nil {
 			return err
 		}
@@ -362,48 +357,12 @@ func (h *UserHandler) UpdateStatus(c *gin.Context) {
 	})
 
 	if errTransaction != nil {
-		errTransaction.Path = ".UserHandler->UpdateStatus()" + errTransaction.Path
+		errTransaction.Path = ".EmployeeHandler->UpdateStatus()" + errTransaction.Path
 		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Status User Berhasil Diubah", Data: data}
-	h.Result = gin.H{
-		"result": dataresponse,
-	}
-
-	c.JSON(http.StatusOK, h.Result)
-}
-
-func (h *UserHandler) Login(c *gin.Context) {
-	var err *types.Error
-	var obj models.UserLogin
-	var data *models.UserLogin
-
-	hash := md5.New()
-	io.WriteString(hash, c.PostForm("Password"))
-
-	username := c.PostForm("Username")
-	password := fmt.Sprintf("%x", hash.Sum(nil))
-
-	obj.Username = username
-	obj.Password = password
-
-	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		data, err = h.UserUsecase.Login(c, obj)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-	if errTransaction != nil {
-		errTransaction.Path = ".UserHandler->Login()" + errTransaction.Path
-		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
-		return
-	}
-
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Login berhasil", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Status Employee Berhasil Diubah", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

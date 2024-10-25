@@ -19,7 +19,6 @@ type Credential struct {
 	Email       string `json:"Email"`
 	PhoneNumber string `json:"PhoneNumber"`
 	Type        string `json:"Type"`
-	BusinessID  string    `json:"BusinessID"`
 
 	FsId         string `json:"fsid"`
 	ClientId     string `json:"clientid"`
@@ -54,7 +53,6 @@ func JwtSignString(c Credential) (string, error) {
 	claims["LoginTime"] = time.Now()
 	claims["Exp"] = time.Now().Add(time.Hour * 72)
 	claims["Type"] = c.Type
-	claims["BusinessID"] = c.BusinessID
 
 	config, _ := configs.GetConfiguration()
 	redisClient := redis.NewClient(&redis.Options{
@@ -84,7 +82,7 @@ func JwtSignString(c Credential) (string, error) {
 	return token, nil
 }
 
-func JwtSignMobileString(c Credential) (string, error) {
+func JwtSignMobileString(c CredentialMobile) (string, error) {
 	sign := jwt.New(jwt.GetSigningMethod("HS256"))
 	claims := sign.Claims.(jwt.MapClaims)
 
@@ -95,7 +93,7 @@ func JwtSignMobileString(c Credential) (string, error) {
 	claims["LoginTime"] = time.Now()
 	claims["Exp"] = time.Now().Add(time.Hour * 72)
 	claims["Type"] = c.Type
-	claims["BusinessID"] = c.BusinessID
+	// claims["BusinessID"] = c.BusinessID
 
 	config, _ := configs.GetConfiguration()
 	redisClient := redis.NewClient(&redis.Options{

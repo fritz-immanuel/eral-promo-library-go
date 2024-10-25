@@ -4,9 +4,9 @@ import (
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 )
 
-type UserPermissionBulk struct {
+type EmployeePermissionBulk struct {
 	ID           string `json:"ID" db:"id"`
-	UserID       string `json:"UserID" db:"user_id"`
+	EmployeeID   string `json:"EmployeeID" db:"employee_id"`
 	PermissionID int    `json:"PermissionID" db:"permission_id"`
 
 	PermissionPackage           string `json:"PermissionPackage" db:"permission_package"`
@@ -20,22 +20,22 @@ type UserPermissionBulk struct {
 	Permission Permission `json:"Permission" db:"-"`
 }
 
-type UserPermission struct {
-	UserID       string     `json:"UserID" db:"user_id"`
+type EmployeePermission struct {
+	EmployeeID   string     `json:"EmployeeID" db:"employee_id"`
 	PermissionID int        `json:"PermissionID" db:"permission_id"`
 	Permission   Permission `json:"Permission" db:"-"`
 }
 
-type CreateUpdateUserPermission struct {
+type CreateUpdateEmployeePermission struct {
 	ID           string `json:"ID" db:"id"`
-	UserID       string `json:"UserID" db:"user_id"`
+	EmployeeID   string `json:"EmployeeID" db:"employee_id"`
 	PermissionID int    `json:"PermissionID" db:"permission_id"`
 }
 
-type FindAllUserPermissionParams struct {
+type FindAllEmployeePermissionParams struct {
 	FindAllParams      types.FindAllParams
 	Package            string
 	PermissionIDString string
 	Not                int
-	UserID             string
+	EmployeeID         string
 }

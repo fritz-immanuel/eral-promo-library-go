@@ -10,18 +10,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserRepository struct {
+type EmployeeRepository struct {
 	repository       data.GenericStorage
 	statusRepository data.GenericStorage
 }
 
-func NewUserRepository(repository data.GenericStorage, statusRepository data.GenericStorage) UserRepository {
-	return UserRepository{repository: repository, statusRepository: statusRepository}
+func NewEmployeeRepository(repository data.GenericStorage, statusRepository data.GenericStorage) EmployeeRepository {
+	return EmployeeRepository{repository: repository, statusRepository: statusRepository}
 }
 
-func (s UserRepository) FindAll(ctx *gin.Context, params models.FindAllUserParams) ([]*models.User, *types.Error) {
-	result := []*models.User{}
-	bulks := []*models.UserBulk{}
+func (s EmployeeRepository) FindAll(ctx *gin.Context, params models.FindAllEmployeeParams) ([]*models.Employee, *types.Error) {
+	result := []*models.Employee{}
+	bulks := []*models.EmployeeBulk{}
 
 	var err error
 
@@ -36,15 +36,15 @@ func (s UserRepository) FindAll(ctx *gin.Context, params models.FindAllUserParam
 	}
 
 	if params.Email != "" {
-		where += ` AND users.email = :email`
+		where += ` AND employees.email = :email`
 	}
 
 	if params.Username != "" {
-		where += ` AND users.username = :username`
+		where += ` AND employees.username = :username`
 	}
 
 	if params.Password != "" {
-		where += ` AND users.password = :password`
+		where += ` AND employees.password = :password`
 	}
 
 	if params.FindAllParams.SortBy != "" {
@@ -57,10 +57,10 @@ func (s UserRepository) FindAll(ctx *gin.Context, params models.FindAllUserParam
 
 	query := fmt.Sprintf(`
   SELECT
-    users.id, users.name, users.email, users.password, users.username,
-    users.status_id, status.name AS status_name
-  FROM users
-  JOIN status ON status.id = users.status_id
+    employees.id, employees.name, employees.email, employees.password, employees.username,
+    employees.status_id, status.name AS status_name
+  FROM employees
+  JOIN status ON status.id = employees.status_id
   WHERE %s
   `, where)
 
@@ -74,7 +74,7 @@ func (s UserRepository) FindAll(ctx *gin.Context, params models.FindAllUserParam
 	})
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".UserStorage->FindAll()",
+			Path:       ".EmployeeStorage->FindAll()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -83,7 +83,7 @@ func (s UserRepository) FindAll(ctx *gin.Context, params models.FindAllUserParam
 	}
 
 	for _, v := range bulks {
-		obj := &models.User{
+		obj := &models.Employee{
 			ID:       v.ID,
 			Name:     v.Name,
 			Email:    v.Email,
@@ -102,24 +102,26 @@ func (s UserRepository) FindAll(ctx *gin.Context, params models.FindAllUserParam
 	return result, nil
 }
 
-func (s UserRepository) Find(ctx *gin.Context, id string) (*models.User, *types.Error) {
+func (s EmployeeRepository) Find(ctx *gin.Context, id string) (*models.Employee, *types.Error) {
 	var err error
 
-	result := models.User{}
-	bulks := []*models.UserBulk{}
+	result := models.Employee{}
+	bulks := []*models.EmployeeBulk{}
 
-	query := fmt.Sprintf(`
+	query := `
   SELECT
-    users.id, users.name, users.email, users.password, users.username,
-    users.status_id, status.name AS status_name
-  FROM users
-  JOIN status on status.id = users.status_id
-  WHERE users.id = %d`, id)
+    employees.id, employees.name, employees.email, employees.password, employees.username,
+    employees.status_id, status.name AS status_name
+  FROM employees
+  JOIN status on status.id = employees.status_id
+  WHERE employees.id = :id`
 
-	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{})
+	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
+		"id": id,
+	})
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".UserStorage->Find()",
+			Path:       ".EmployeeStorage->Find()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -129,7 +131,7 @@ func (s UserRepository) Find(ctx *gin.Context, id string) (*models.User, *types.
 
 	if len(bulks) > 0 {
 		v := bulks[0]
-		result = models.User{
+		result = models.Employee{
 			ID:       v.ID,
 			Name:     v.Name,
 			Email:    v.Email,
@@ -143,7 +145,7 @@ func (s UserRepository) Find(ctx *gin.Context, id string) (*models.User, *types.
 		}
 	} else {
 		return nil, &types.Error{
-			Path:       ".UserStorage->Find()",
+			Path:       ".EmployeeStorage->Find()",
 			Message:    "Data Not Found",
 			Error:      data.ErrNotFound,
 			StatusCode: http.StatusNotFound,
@@ -154,12 +156,12 @@ func (s UserRepository) Find(ctx *gin.Context, id string) (*models.User, *types.
 	return &result, nil
 }
 
-func (s UserRepository) Create(ctx *gin.Context, obj *models.User) (*models.User, *types.Error) {
-	data := models.User{}
+func (s EmployeeRepository) Create(ctx *gin.Context, obj *models.Employee) (*models.Employee, *types.Error) {
+	data := models.Employee{}
 	_, err := s.repository.Insert(ctx, obj)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".UserStorage->Create()",
+			Path:       ".EmployeeStorage->Create()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -170,7 +172,7 @@ func (s UserRepository) Create(ctx *gin.Context, obj *models.User) (*models.User
 	err = s.repository.FindByID(ctx, &data, obj.ID)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".UserStorage->Create()",
+			Path:       ".EmployeeStorage->Create()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -180,12 +182,12 @@ func (s UserRepository) Create(ctx *gin.Context, obj *models.User) (*models.User
 	return &data, nil
 }
 
-func (s UserRepository) Update(ctx *gin.Context, obj *models.User) (*models.User, *types.Error) {
-	data := models.User{}
+func (s EmployeeRepository) Update(ctx *gin.Context, obj *models.Employee) (*models.Employee, *types.Error) {
+	data := models.Employee{}
 	err := s.repository.Update(ctx, obj)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".UserStorage->Create()",
+			Path:       ".EmployeeStorage->Create()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -196,7 +198,7 @@ func (s UserRepository) Update(ctx *gin.Context, obj *models.User) (*models.User
 	err = s.repository.FindByID(ctx, &data, obj.ID)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".UserStorage->Create()",
+			Path:       ".EmployeeStorage->Create()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -206,12 +208,12 @@ func (s UserRepository) Update(ctx *gin.Context, obj *models.User) (*models.User
 	return &data, nil
 }
 
-func (s UserRepository) UpdateStatus(ctx *gin.Context, id string, statusID string) (*models.User, *types.Error) {
-	data := models.User{}
+func (s EmployeeRepository) UpdateStatus(ctx *gin.Context, id string, statusID string) (*models.Employee, *types.Error) {
+	data := models.Employee{}
 	err := s.repository.UpdateStatus(ctx, id, statusID)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".UserStorage->UpdateStatus()",
+			Path:       ".EmployeeStorage->UpdateStatus()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -222,7 +224,7 @@ func (s UserRepository) UpdateStatus(ctx *gin.Context, id string, statusID strin
 	err = s.repository.FindByID(ctx, &data, id)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".UserStorage->UpdateStatus()",
+			Path:       ".EmployeeStorage->UpdateStatus()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
