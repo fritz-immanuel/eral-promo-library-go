@@ -19,29 +19,23 @@ const (
 	// KeySessionID represents the current logged-in SessionID
 	KeySessionID contextKey = "SessionID"
 
-	//KeyWarehouseIDs represents the list access of warehouseId
-	KeyOutletID contextKey = "OutletID"
-
-	// KeyUserID represents the current logged-in UserID
+	// KeyUserID represents the current logged-in User ID
 	KeyUserID contextKey = "UserID"
 
-	// KeyUserName represents the current logged-in UserID
+	// KeyUserName represents the current logged-in User Name
 	KeyUserName contextKey = "UserName"
+
+	// KeyEmployeeID represents the current logged-in Employee ID
+	KeyEmployeeID contextKey = "EmployeeID"
+
+	// KeyEmployeeName represents the current logged-in Employee Name
+	KeyEmployeeName contextKey = "EmployeeName"
+
+	// KeyCompanyID represents the current logged-in CompanyID
+	KeyCompanyID contextKey = "CompanyID"
 
 	// KeyLoginToken represents the current logged-in token
 	KeyLoginToken contextKey = "LoginToken"
-
-	// KeyCustomerID represents the current logged-in UserID's CustomerID from customer-payfazz
-	KeyBusinessID contextKey = "BusinessID"
-
-	// KeyBusinessShiftID represents the current logged-in UserID's CustomerID from customer-payfazz
-	KeyBusinessShiftID contextKey = "BusinessShiftID"
-
-	// KeySupervisorUserID represents the current logged-in UserID's SupervisorUserID
-	KeySupervisorUserID contextKey = "SupervisorUserID"
-
-	// KeyKitchenID represents the current logged-in KitchenID's CustomerID from customer-payfazz
-	KeyKitchenID contextKey = "KitchenID"
 
 	// Type represents the current logged-in UserID's CustomerID from customer-payfazz
 	KeyType contextKey = "Type"
@@ -151,6 +145,36 @@ func UserName(ctx *gin.Context) *string {
 	return nil
 }
 
+// EmployeeID gets current userId logged in from the context
+func EmployeeID(ctx *gin.Context) *string {
+	userID := ctx.Value(fmt.Sprintf("%v", KeyEmployeeID))
+	if userID != nil {
+		if reflect.ValueOf(userID).Kind().String() == "string" {
+			v := userID.(string)
+			return &v
+		} else {
+			v := fmt.Sprintf("%v", userID)
+			return &v
+		}
+	}
+	return nil
+}
+
+// EmployeeName gets current userName logged in from the context
+func EmployeeName(ctx *gin.Context) *string {
+	employeeName := ctx.Value(fmt.Sprintf("%v", KeyEmployeeName))
+	if employeeName != nil {
+		if reflect.ValueOf(employeeName).Kind().String() == "string" {
+			v := employeeName.(string)
+			return &v
+		} else {
+			v := fmt.Sprintf("%v", employeeName)
+			return &v
+		}
+	}
+	return nil
+}
+
 // TypeID gets current TypeID logged in from the context
 func Type(ctx *gin.Context) *string {
 	typeData := ctx.Value(fmt.Sprintf("%s", KeyType))
@@ -162,59 +186,19 @@ func Type(ctx *gin.Context) *string {
 	return nil
 }
 
-// OutletID gets current logged-in UserID's OutletID from context
-func OutletID(ctx *gin.Context) int {
-	outletID := ctx.Value(fmt.Sprintf("%v", KeyOutletID))
-	if outletID != nil {
-		v := int(outletID.(float64))
-		return v
-	}
-	return 0
-}
-
-// BusinessID gets current prefered BusinessID of UserID
-func BusinessID(ctx *gin.Context) *string {
-	businessID := ctx.Value(fmt.Sprintf("%v", KeyBusinessID))
-	if businessID != nil {
-		if reflect.ValueOf(businessID).Kind().String() == "string" {
-			v := businessID.(string)
+// CompanyID gets current prefered CompanyID of Employee or User ID
+func CompanyID(ctx *gin.Context) *string {
+	companyID := ctx.Value(fmt.Sprintf("%v", KeyCompanyID))
+	if companyID != nil {
+		if reflect.ValueOf(companyID).Kind().String() == "string" {
+			v := companyID.(string)
 			return &v
 		} else {
-			v := fmt.Sprintf("%v", businessID)
+			v := fmt.Sprintf("%v", companyID)
 			return &v
 		}
 	}
 	return nil
-}
-
-// BusinessShiftID gets current prefered BusinessShiftID of UserID
-func BusinessShiftID(ctx *gin.Context) int {
-	businessShiftID := ctx.Value(fmt.Sprintf("%s", KeyBusinessShiftID))
-	if businessShiftID != nil {
-		v := int(businessShiftID.(float64))
-		return v
-	}
-	return 0
-}
-
-// SupervisorUserID gets current prefered SupervisorUserID of UserID
-func SupervisorUserID(ctx *gin.Context) int {
-	SupervisorUserID := ctx.Value(fmt.Sprintf("%s", KeySupervisorUserID))
-	if SupervisorUserID != nil {
-		v := int(SupervisorUserID.(float64))
-		return v
-	}
-	return 0
-}
-
-// KitchenID gets current prefered KitchenID of UserID
-func KitchenID(ctx *gin.Context) int {
-	KitchenID := ctx.Value(fmt.Sprintf("%s", KeyKitchenID))
-	if KitchenID != nil {
-		v := int(KitchenID.(float64))
-		return v
-	}
-	return 0
 }
 
 // VersionCode gets current version code of request

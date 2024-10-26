@@ -29,6 +29,7 @@ func RegisterRoutes(db *sqlx.DB, config *configs.Config, dataManager *data.Manag
 	}))
 
 	RegisterAdminRoutes(db, dataManager, router)
+	RegisterWebRoutes(db, dataManager, router)
 	// RegisterWellKnownRoutes(db, dataManager, router) // uncomment when u need
 
 	serverAddress := config.PortApps

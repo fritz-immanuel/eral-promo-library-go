@@ -8,7 +8,6 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/fritz-immanuel/eral-promo-library-go/library/appcontext"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 	"github.com/gin-gonic/gin"
 	"github.com/leekchan/accounting"
@@ -73,26 +72,24 @@ func FilterFindAll(c *gin.Context) (string, string) {
 func FilterFindAllParam(c *gin.Context) types.FindAllParams {
 	var statusID string
 	var businessID string
+	var companyID string
 	var outletID string
 	var Outlets []string
 	var sort string
-	var op string
 
-	userType := appcontext.Type(c)
-	if userType != nil {
-		if *userType != "Web" {
-			businessID = fmt.Sprintf("%d", appcontext.BusinessID(c))
-		}
+	// userType := appcontext.Type(c)
+	// if userType != nil {
+	// 	if *userType != "Web" {
+	// 		businessID = fmt.Sprintf("%d", appcontext.CompanyID(c))
+	// 	}
+	// }
 
+	if c.Query("CompanyID") != "" {
+		companyID = fmt.Sprintf("%v", c.Query("CompanyID"))
 	}
 
 	if c.Query("BusinessID") != "" {
 		businessID = fmt.Sprintf("%v", c.Query("BusinessID"))
-	}
-
-	outletID = fmt.Sprintf("%d", appcontext.OutletID(c))
-	if c.Query("OutletID") != "" {
-		outletID = fmt.Sprintf("%v", c.Query("OutletID"))
 	}
 
 	findallparams := types.FindAllParams{-1, 10, "", "code", "desc", "", "", "", Outlets}
@@ -132,24 +129,25 @@ func FilterFindAllParam(c *gin.Context) types.FindAllParams {
 		}
 	}
 
-	bID, _ := MultiValueFilterCheck(businessID) // make sure its all int
-	explodeBusiness := strings.Split(bID, ",")
-	for _, b := range explodeBusiness {
+	cID, _ := ValidateUUID(companyID) // make sure its all UUID
+	explodeCompany := strings.Split(*cID, ",")
+	for _, b := range explodeCompany {
 		if b != "-1" && b != "" && b != "0" {
-			JoinStringBusiness := strings.Join(explodeBusiness, ",")
-			businessID = "business_id IN (" + JoinStringBusiness + ")"
-			break
-		} else {
-			businessID = ""
-			break
+			b = fmt.Sprintf(`"%s"`, b)
 		}
 	}
+	JoinStringCompany := strings.Join(explodeCompany, ",")
+	companyID = "company_id IN (" + JoinStringCompany + ")"
 
-	if outletID != "-1" && outletID != "" && outletID != "0" {
-		outletID = op + " outlet_id = " + outletID
-	} else {
-		outletID = ""
+	bID, _ := ValidateUUID(businessID) // make sure its all UUID
+	explodeBusiness := strings.Split(*bID, ",")
+	for _, b := range explodeBusiness {
+		if b != "-1" && b != "" && b != "0" {
+			b = fmt.Sprintf(`"%s"`, b)
+		}
 	}
+	JoinStringBusiness := strings.Join(explodeBusiness, ",")
+	businessID = "business_id IN (" + JoinStringBusiness + ")"
 
 	if sortName != "" {
 		sort = GetSortBy(sortName, sortBy)
@@ -158,7 +156,7 @@ func FilterFindAllParam(c *gin.Context) types.FindAllParams {
 	dataFinder := DataFinder(c.Query("KeywordName"), c.Query("Keyword"))
 	page, _ := strconv.Atoi(c.Query("Page"))
 	size, _ := strconv.Atoi(c.Query("Size"))
-	findallparams = types.FindAllParams{Page: page, Size: size, StatusID: statusID, DataFinder: dataFinder, SortName: sortName, SortBy: sort, BusinessID: businessID, OutletID: outletID, Outlets: Outlets}
+	findallparams = types.FindAllParams{Page: page, Size: size, StatusID: statusID, DataFinder: dataFinder, SortName: sortName, SortBy: sort, BusinessID: businessID, CompanyID: companyID, Outlets: Outlets}
 	return findallparams
 }
 func sanitize(text string) string {

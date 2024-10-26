@@ -15,7 +15,7 @@ INSERT INTO
   )
 VALUES
   (
-    'Website',
+    'WebsiteAdmin',
     'User',
     'List',
     'User',
@@ -28,7 +28,7 @@ VALUES
     CURRENT_TIMESTAMP,
     '0'
   ), (
-    'Website',
+    'WebsiteAdmin',
     'User',
     'View',
     'User',
@@ -41,7 +41,7 @@ VALUES
     CURRENT_TIMESTAMP,
     '0'
   ), (
-    'Website',
+    'WebsiteAdmin',
     'User',
     'Create',
     'User',
@@ -54,7 +54,7 @@ VALUES
     CURRENT_TIMESTAMP,
     '0'
   ), (
-    'Website',
+    'WebsiteAdmin',
     'User',
     'Edit',
     'User',
@@ -67,7 +67,7 @@ VALUES
     CURRENT_TIMESTAMP,
     '0'
   ), (
-    'Website',
+    'WebsiteAdmin',
     'User',
     'UpdateStatus',
     'User',
@@ -80,7 +80,7 @@ VALUES
     CURRENT_TIMESTAMP,
     '0'
   ), (
-    'Website',
+    'WebsiteAdmin',
     'User',
     'UpdatePassword',
     'User',,
@@ -93,7 +93,7 @@ VALUES
     CURRENT_TIMESTAMP,
     '0'
   ), (
-    'Website',
+    'WebsiteAdmin',
     'User',
     'ResetPassword',
     'User',,

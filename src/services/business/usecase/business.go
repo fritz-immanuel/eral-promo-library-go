@@ -62,11 +62,11 @@ func (u *BusinessUsecase) Count(ctx *gin.Context, params models.FindAllBusinessP
 
 func (u *BusinessUsecase) Create(ctx *gin.Context, obj models.Business) (*models.Business, *types.Error) {
 	data := models.Business{
-		ID:       uuid.New().String(),
-		Name:     obj.Name,
-		Code:     obj.Code,
-		LogoImg:  obj.LogoImg,
-		StatusID: obj.StatusID,
+		ID:         uuid.New().String(),
+		Name:       obj.Name,
+		Code:       obj.Code,
+		LogoImgURL: obj.LogoImgURL,
+		StatusID:   obj.StatusID,
 	}
 
 	result, err := u.businessRepo.Create(ctx, &data)
@@ -87,7 +87,7 @@ func (u *BusinessUsecase) Update(ctx *gin.Context, id string, obj models.Busines
 
 	data.Name = obj.Name
 	data.Code = obj.Code
-	data.LogoImg = obj.LogoImg
+	data.LogoImgURL = obj.LogoImgURL
 
 	result, err := u.businessRepo.Update(ctx, data)
 	if err != nil {

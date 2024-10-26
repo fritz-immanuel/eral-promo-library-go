@@ -136,7 +136,7 @@ func Auth(c *gin.Context) {
   permission.route AS permission_route
   FROM user_permissions
   JOIN permission ON permission.id = user_permissions.permission_id
-  WHERE package = 'Website' AND user_permissions.user_id = ?
+  WHERE package = 'WebsiteAdmin' AND user_permissions.user_id = ?
   `, claimJWT["ID"])
 	if err != nil {
 		log.Fatal(err)

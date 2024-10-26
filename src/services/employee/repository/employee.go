@@ -157,7 +157,7 @@ func (s EmployeeRepository) Find(ctx *gin.Context, id string) (*models.Employee,
 }
 
 func (s EmployeeRepository) Create(ctx *gin.Context, obj *models.Employee) (*models.Employee, *types.Error) {
-	data := models.Employee{}
+	result := models.Employee{}
 	_, err := s.repository.Insert(ctx, obj)
 	if err != nil {
 		return nil, &types.Error{
@@ -169,7 +169,7 @@ func (s EmployeeRepository) Create(ctx *gin.Context, obj *models.Employee) (*mod
 		}
 	}
 
-	err = s.repository.FindByID(ctx, &data, obj.ID)
+	err = s.repository.FindByID(ctx, &result, obj.ID)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".EmployeeStorage->Create()",
@@ -179,15 +179,16 @@ func (s EmployeeRepository) Create(ctx *gin.Context, obj *models.Employee) (*mod
 			Type:       "mysql-error",
 		}
 	}
-	return &data, nil
+
+	return &result, nil
 }
 
 func (s EmployeeRepository) Update(ctx *gin.Context, obj *models.Employee) (*models.Employee, *types.Error) {
-	data := models.Employee{}
+	result := models.Employee{}
 	err := s.repository.Update(ctx, obj)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".EmployeeStorage->Create()",
+			Path:       ".EmployeeStorage->Update()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -195,17 +196,18 @@ func (s EmployeeRepository) Update(ctx *gin.Context, obj *models.Employee) (*mod
 		}
 	}
 
-	err = s.repository.FindByID(ctx, &data, obj.ID)
+	err = s.repository.FindByID(ctx, &result, obj.ID)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".EmployeeStorage->Create()",
+			Path:       ".EmployeeStorage->Update()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
 			Type:       "mysql-error",
 		}
 	}
-	return &data, nil
+
+	return &result, nil
 }
 
 func (s EmployeeRepository) UpdateStatus(ctx *gin.Context, id string, statusID string) (*models.Employee, *types.Error) {

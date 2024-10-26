@@ -7,7 +7,7 @@ CREATE TABLE business (
   phone_number VARCHAR(255) DEFAULT '',
   wa_number VARCHAR(255) DEFAULT '',
   code VARCHAR(255) DEFAULT '',
-  logo_img VARCHAR(255) DEFAULT '',
+  logo_img_url VARCHAR(255) DEFAULT '',
   app_url VARCHAR(255) DEFAULT '',
   on_prem_queue_url VARCHAR(255) DEFAULT '',
   access_token VARCHAR(255) DEFAULT '',

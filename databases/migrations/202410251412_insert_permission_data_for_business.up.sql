@@ -15,7 +15,7 @@ INSERT INTO
   )
 VALUES
   (
-    'Website',
+    'WebsiteAdmin',
     'Business',
     'List',
     'Business',
@@ -28,7 +28,7 @@ VALUES
     CURRENT_TIMESTAMP,
     '0'
   ), (
-    'Website',
+    'WebsiteAdmin',
     'Business',
     'View',
     'Business',
@@ -41,7 +41,7 @@ VALUES
     CURRENT_TIMESTAMP,
     '0'
   ), (
-    'Website',
+    'WebsiteAdmin',
     'Business',
     'Create',
     'Business',
@@ -54,7 +54,7 @@ VALUES
     CURRENT_TIMESTAMP,
     '0'
   ), (
-    'Website',
+    'WebsiteAdmin',
     'Business',
     'Edit',
     'Business',
@@ -67,7 +67,7 @@ VALUES
     CURRENT_TIMESTAMP,
     '0'
   ), (
-    'Website',
+    'WebsiteAdmin',
     'Business',
     'UpdateStatus',
     'Business',

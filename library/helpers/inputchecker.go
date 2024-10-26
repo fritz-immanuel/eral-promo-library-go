@@ -9,6 +9,7 @@ import (
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 func MultiValueFilterCheck(input string) (string, *types.Error) {
@@ -57,13 +58,51 @@ func ValidateStruct(input interface{}) *types.Error {
 		msg := fmt.Sprintf(`'%s' is required`, missingTag)
 
 		return &types.Error{
-			Path:       ".Helpers->validateStruct()",
+			Path:       ".Helpers->ValidateStruct()",
 			Message:    msg,
 			Error:      errValidation,
-			StatusCode: http.StatusUnprocessableEntity,
+			StatusCode: http.StatusBadRequest,
 			Type:       "validation-error",
 		}
 	}
 
 	return nil
 }
+
+func ValidateUUID(input string) (*string, *types.Error) {
+	if _, err := uuid.Parse(input); err != nil {
+		return nil, &types.Error{
+			Path:       ".Helpers->ValidateUUID()",
+			Message:    "Unknown input data type",
+			Error:      fmt.Errorf("unknown input data type"),
+			StatusCode: http.StatusBadRequest,
+			Type:       "validation-error",
+		}
+	}
+
+	return &input, nil
+}
+
+func MultiValueUUIDCheck(input string) (string, *types.Error) {
+	result := ""
+
+	if input != "" {
+		explodeUUID := strings.Split(input, ",")
+		for _, v := range explodeUUID {
+			if _, err := uuid.Parse(v); err != nil {
+				return "", &types.Error{
+					Path:       ".Helpers->MultiValueUUIDCheck()",
+					Message:    "Unknown input data type",
+					Error:      fmt.Errorf("unknown input data type"),
+					StatusCode: http.StatusBadRequest,
+					Type:       "validation-error",
+				}
+			}
+
+			result = result + v + ","
+		}
+		return strings.TrimSuffix(result, ","), nil
+	}
+
+	return result, nil
+}	
