@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
+	"github.com/fritz-immanuel/eral-promo-library-go/library/firebase"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/middleware"
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
@@ -54,8 +55,14 @@ func (h *BusinessHandler) FindAll(c *gin.Context) {
 	datas, err := h.BusinessUsecase.FindAll(c, params)
 	if err != nil {
 		if err.Error != data.ErrNotFound {
-			response.Error(c, err.Message, http.StatusInternalServerError, *err)
+			response.Error(c, err.Message, err.StatusCode, *err)
 			return
+		}
+	}
+
+	for _, data := range datas {
+		if data.LogoImgURL != "" {
+			data.LogoImgURL, _ = firebase.GenerateSignedURL(data.LogoImgURL)
 		}
 	}
 
@@ -70,7 +77,7 @@ func (h *BusinessHandler) FindAll(c *gin.Context) {
 		}
 	}
 
-	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Business Berhasil Ditampilkan", TotalData: length, Page: page, Size: size, Data: datas}
+	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data fetched!", TotalData: length, Page: page, Size: size, Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -91,7 +98,11 @@ func (h *BusinessHandler) Find(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Business Berhasil Ditampilkan", Data: result}
+	if result.LogoImgURL != "" {
+		result.LogoImgURL, _ = firebase.GenerateSignedURL(result.LogoImgURL)
+	}
+
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data fetched!", Data: result}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -107,7 +118,29 @@ func (h *BusinessHandler) Create(c *gin.Context) {
 	business.Name = c.PostForm("Name")
 	business.Code = c.PostForm("Code")
 
-	// TODO: upload img
+	file, errFile := c.FormFile("LogoImgURL")
+	if file != nil {
+		if errFile != nil {
+			err = &types.Error{
+				Path:       ".BusinessHandler->Create()",
+				Message:    errFile.Error(),
+				Error:      errFile,
+				StatusCode: http.StatusInternalServerError,
+				Type:       "golang-error",
+			}
+			response.Error(c, err.Message, err.StatusCode, *err)
+			return
+		}
+
+		filename, err := firebase.UploadFile(c, file, "business")
+		if err != nil {
+			err.Path = ".BusinessHandler->Create()" + err.Path
+			response.Error(c, err.Message, err.StatusCode, *err)
+			return
+		}
+
+		business.LogoImgURL = filename
+	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
 		dataBusiness, err = h.BusinessUsecase.Create(c, business)
@@ -123,7 +156,7 @@ func (h *BusinessHandler) Create(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Business Berhasil Ditambahkan", Data: dataBusiness}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data created!", Data: dataBusiness}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -141,9 +174,45 @@ func (h *BusinessHandler) Update(c *gin.Context) {
 	business.Name = c.PostForm("Name")
 	business.Code = c.PostForm("Code")
 
-	// TODO: upload img
+	file, errFile := c.FormFile("LogoImgURL")
+	if file != nil {
+		if errFile != nil {
+			err = &types.Error{
+				Path:       ".BusinessHandler->Update()",
+				Message:    errFile.Error(),
+				Error:      errFile,
+				StatusCode: http.StatusInternalServerError,
+				Type:       "golang-error",
+			}
+			response.Error(c, err.Message, err.StatusCode, *err)
+			return
+		}
+
+		filename, err := firebase.UploadFile(c, file, "business")
+		if err != nil {
+			err.Path = ".BusinessHandler->Update()" + err.Path
+			response.Error(c, err.Message, err.StatusCode, *err)
+			return
+		}
+
+		business.LogoImgURL = filename
+	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
+		{ // delete existing logo
+			businessData, err := h.BusinessUsecase.Find(c, id)
+			if err != nil {
+				return err
+			}
+
+			if businessData.LogoImgURL != "" {
+				err := firebase.DeleteFile(c, businessData.LogoImgURL)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 		data, err = h.BusinessUsecase.Update(c, id, business)
 		if err != nil {
 			return err
@@ -158,7 +227,7 @@ func (h *BusinessHandler) Update(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Business Berhasil Ditambahkan", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data updated!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

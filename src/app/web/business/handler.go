@@ -70,7 +70,7 @@ func (h *BusinessHandler) FindAll(c *gin.Context) {
 		}
 	}
 
-	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Business Berhasil Ditampilkan", TotalData: length, Page: page, Size: size, Data: datas}
+	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data fetched!", TotalData: length, Page: page, Size: size, Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -91,7 +91,7 @@ func (h *BusinessHandler) Find(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Business Berhasil Ditampilkan", Data: result}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data fetched!", Data: result}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -123,7 +123,7 @@ func (h *BusinessHandler) Create(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Business Berhasil Ditambahkan", Data: dataBusiness}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data created!", Data: dataBusiness}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -158,7 +158,7 @@ func (h *BusinessHandler) Update(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Business Berhasil Ditambahkan", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data created!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

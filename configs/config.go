@@ -32,6 +32,11 @@ const (
 	teleBotToken = "TELE_BOT_TOKEN"
 	teleGroupID  = "TELE_GROUP_ID"
 
+	firebaseServerKey        = "FIREBASE_SERVER_KEY"
+	firebaseSenderID         = "FIREBASE_SENDER_ID"
+	firebaseStorageBucketURL = "FIREBASE_BUCKET_URL"
+	firebaseAuthFilePath     = "FIREBASE_AUTH_FILE_PATH"
+
 	whitelistedIps = "WHITELISTED_IPS"
 )
 
@@ -71,6 +76,12 @@ type Config struct {
 	// Telegram
 	TeleBotToken string
 	TeleGroupID  string
+
+	// Firebase
+	FirebaseServerKey        string
+	FirebaseSenderID         string
+	FirebaseStorageBucketURL string
+	FirebaseAuthFilePath     string
 
 	AppURL string
 }
@@ -134,6 +145,11 @@ func GetConfiguration() (*Config, error) {
 		// TELEGRAM
 		TeleBotToken: result[teleBotToken].(string),
 		TeleGroupID:  result[teleGroupID].(string),
+
+		FirebaseServerKey:        result[firebaseServerKey].(string),
+		FirebaseAuthFilePath:     result[firebaseAuthFilePath].(string),
+		FirebaseStorageBucketURL: result[firebaseStorageBucketURL].(string),
+		FirebaseSenderID:         result[firebaseSenderID].(string),
 
 		AppURL:         result[appUrl].(string),
 		WhitelistedIps: result[whitelistedIps].(string),
