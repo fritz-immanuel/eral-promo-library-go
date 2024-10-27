@@ -14,6 +14,7 @@ import (
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library/appcontext"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/data"
+	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/http/response"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 
@@ -48,7 +49,7 @@ func (h EmployeeHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 
 	rs := v.Group("/employees")
 	{
-		rs.GET("/profile", middleware.AuthWebApp, base.Find)
+		rs.GET("/profile", middleware.AuthWebApp, base.EmployeeProfile)
 
 		rs.PUT("/profile/password", middleware.AuthWebApp, base.UpdatePassword)
 	}
@@ -59,12 +60,17 @@ func (h EmployeeHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 	}
 }
 
-func (h *EmployeeHandler) Find(c *gin.Context) {
-	id := *appcontext.EmployeeID(c)
+func (h *EmployeeHandler) EmployeeProfile(c *gin.Context) {
+	id, err := helpers.ValidateUUID(*appcontext.EmployeeID(c))
+	if err != nil {
+		err.Path = ".EmployeeHandler->EmployeeProfile()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	result, err := h.EmployeeUsecase.Find(c, id)
 	if err != nil {
-		err.Path = ".EmployeeHandler->Find()" + err.Path
+		err.Path = ".EmployeeHandler->EmployeeProfile()" + err.Path
 		if err.Error == data.ErrNotFound {
 			response.Error(c, "Employee not found", http.StatusUnprocessableEntity, *err)
 			return
@@ -72,7 +78,7 @@ func (h *EmployeeHandler) Find(c *gin.Context) {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Data fetched!", Data: result}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Profile fetched!", Data: result}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -84,7 +90,13 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 	var err *types.Error
 	var dataEmployee *models.Employee
 
-	id := *appcontext.EmployeeID(c)
+	id, err := helpers.ValidateUUID(*appcontext.EmployeeID(c))
+	if err != nil {
+		err.Path = ".EmployeeHandler->UpdatePassword()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
 	var oldPassword = c.PostForm("OldPassword")
 	var newPassword = c.PostForm("NewPassword")
 

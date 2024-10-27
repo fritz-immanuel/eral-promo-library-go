@@ -98,7 +98,12 @@ func (h *EmployeeHandler) FindAll(c *gin.Context) {
 }
 
 func (h *EmployeeHandler) Find(c *gin.Context) {
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->Find()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	result, err := h.EmployeeUsecase.Find(c, id)
 	if err != nil {
@@ -170,7 +175,12 @@ func (h *EmployeeHandler) Update(c *gin.Context) {
 	var employee models.Employee
 	var data *models.Employee
 
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->Update()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	employee.Name = c.PostForm("Name")
 	employee.Email = c.PostForm("Email")
@@ -213,7 +223,13 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 	var err *types.Error
 	var dataEmployee *models.Employee
 
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->UpdatePassword()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
 	var oldPassword = c.PostForm("OldPassword")
 	var newPassword = c.PostForm("NewPassword")
 
@@ -301,7 +317,12 @@ func (h *EmployeeHandler) ResetPassword(c *gin.Context) {
 	var err *types.Error
 	var dataEmployee *models.Employee
 
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->ResetPassword()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
 		dataEmployee, err = h.EmployeeUsecase.UpdatePassword(c, id, "123456")
@@ -343,7 +364,12 @@ func (h *EmployeeHandler) UpdateStatus(c *gin.Context) {
 	var err *types.Error
 	var data *models.Employee
 
-	employeeID := c.Param("id")
+	employeeID, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->UpdateStatus()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	newStatusID := c.PostForm("StatusID")
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
+	"github.com/fritz-immanuel/eral-promo-library-go/library/appcontext"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/firebase"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/middleware"
@@ -39,51 +40,17 @@ func (h BusinessHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 
 	rs := v.Group("/business")
 	{
-		rs.GET("", middleware.AuthWebApp, base.FindAll)
-		rs.GET("/:id", middleware.AuthWebApp, base.Find)
+		rs.GET("", middleware.AuthWebApp, base.Find)
 	}
-}
-
-func (h *BusinessHandler) FindAll(c *gin.Context) {
-	var params models.FindAllBusinessParams
-	page, size := helpers.FilterFindAll(c)
-	filterFindAllParams := helpers.FilterFindAllParam(c)
-	params.FindAllParams = filterFindAllParams
-	params.FindAllParams.SortBy = "business.name ASC"
-	datas, err := h.BusinessUsecase.FindAll(c, params)
-	if err != nil {
-		if err.Error != data.ErrNotFound {
-			response.Error(c, err.Message, http.StatusInternalServerError, *err)
-			return
-		}
-	}
-
-	for _, data := range datas {
-		if data.LogoImgURL != "" {
-			data.LogoImgURL, _ = firebase.GenerateSignedURL(data.LogoImgURL)
-		}
-	}
-
-	params.FindAllParams.Page = -1
-	params.FindAllParams.Size = -1
-	length, err := h.BusinessUsecase.Count(c, params)
-	if err != nil {
-		err.Path = ".BusinessHandler->FindAll()" + err.Path
-		if err.Error != data.ErrNotFound {
-			response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
-			return
-		}
-	}
-
-	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data fetched!", TotalData: length, Page: page, Size: size, Data: datas}
-	h.Result = gin.H{
-		"result": dataresponse,
-	}
-	c.JSON(h.Status, h.Result)
 }
 
 func (h *BusinessHandler) Find(c *gin.Context) {
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(*appcontext.BusinessID(c))
+	if err != nil {
+		err.Path = ".BusinessHandler->Find()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	result, err := h.BusinessUsecase.Find(c, id)
 	if err != nil {

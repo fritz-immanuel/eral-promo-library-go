@@ -69,9 +69,9 @@ func ValidateStruct(input interface{}) *types.Error {
 	return nil
 }
 
-func ValidateUUID(input string) (*string, *types.Error) {
+func ValidateUUID(input string) (string, *types.Error) {
 	if _, err := uuid.Parse(input); err != nil {
-		return nil, &types.Error{
+		return "", &types.Error{
 			Path:       ".Helpers->ValidateUUID()",
 			Message:    "Unknown input data type",
 			Error:      fmt.Errorf("unknown input data type"),
@@ -80,7 +80,7 @@ func ValidateUUID(input string) (*string, *types.Error) {
 		}
 	}
 
-	return &input, nil
+	return input, nil
 }
 
 func MultiValueUUIDCheck(input string) (string, *types.Error) {
@@ -105,4 +105,4 @@ func MultiValueUUIDCheck(input string) (string, *types.Error) {
 	}
 
 	return result, nil
-}	
+}

@@ -129,21 +129,21 @@ func FilterFindAllParam(c *gin.Context) types.FindAllParams {
 		}
 	}
 
-	cID, _ := ValidateUUID(companyID) // make sure its all UUID
-	explodeCompany := strings.Split(*cID, ",")
-	for _, b := range explodeCompany {
+	cID, _ := MultiValueUUIDCheck(companyID) // make sure its all UUID
+	explodeCompany := strings.Split(cID, ",")
+	for idx, b := range explodeCompany {
 		if b != "-1" && b != "" && b != "0" {
-			b = fmt.Sprintf(`"%s"`, b)
+			explodeCompany[idx] = fmt.Sprintf(`"%s"`, b)
 		}
 	}
 	JoinStringCompany := strings.Join(explodeCompany, ",")
 	companyID = "company_id IN (" + JoinStringCompany + ")"
 
-	bID, _ := ValidateUUID(businessID) // make sure its all UUID
-	explodeBusiness := strings.Split(*bID, ",")
-	for _, b := range explodeBusiness {
+	bID, _ := MultiValueUUIDCheck(businessID) // make sure its all UUID
+	explodeBusiness := strings.Split(bID, ",")
+	for idx, b := range explodeBusiness {
 		if b != "-1" && b != "" && b != "0" {
-			b = fmt.Sprintf(`"%s"`, b)
+			explodeBusiness[idx] = fmt.Sprintf(`"%s"`, b)
 		}
 	}
 	JoinStringBusiness := strings.Join(explodeBusiness, ",")

@@ -142,7 +142,7 @@ func (h *PromoHandler) Find(c *gin.Context) {
 		return
 	}
 
-	result, err := h.PromoUsecase.Find(c, *id)
+	result, err := h.PromoUsecase.Find(c, id)
 	if err != nil {
 		err.Path = ".PromoHandler->Find()" + err.Path
 		if err.Error == data.ErrNotFound {
@@ -411,7 +411,7 @@ func (h *PromoHandler) Update(c *gin.Context) {
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
 		{ // delete existing img
-			promoData, err := h.PromoUsecase.Find(c, *id)
+			promoData, err := h.PromoUsecase.Find(c, id)
 			if err != nil {
 				return err
 			}
@@ -424,7 +424,7 @@ func (h *PromoHandler) Update(c *gin.Context) {
 			}
 		}
 
-		data, err = h.PromoUsecase.Update(c, *id, promo)
+		data, err = h.PromoUsecase.Update(c, id, promo)
 		if err != nil {
 			return err
 		}
@@ -476,7 +476,7 @@ func (h *PromoHandler) UpdateStatus(c *gin.Context) {
 	newStatusID := c.PostForm("StatusID")
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		data, err = h.PromoUsecase.UpdateStatus(c, *id, newStatusID)
+		data, err = h.PromoUsecase.UpdateStatus(c, id, newStatusID)
 		if err != nil {
 			return err
 		}

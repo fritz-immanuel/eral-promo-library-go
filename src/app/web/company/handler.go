@@ -7,6 +7,7 @@ import (
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library/appcontext"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/firebase"
+	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/middleware"
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
 	"github.com/fritz-immanuel/eral-promo-library-go/src/services/company"
@@ -44,7 +45,12 @@ func (h CompanyHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rout
 }
 
 func (h *CompanyHandler) Find(c *gin.Context) {
-	id := *appcontext.CompanyID(c)
+	id, err := helpers.ValidateUUID(*appcontext.CompanyID(c))
+	if err != nil {
+		err.Path = ".CompanyHandler->Find()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	result, err := h.CompanyUsecase.Find(c, id)
 	if err != nil {

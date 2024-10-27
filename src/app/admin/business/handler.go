@@ -46,6 +46,11 @@ func (h BusinessHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 
 		rs.PUT("/:id/status", middleware.Auth, base.UpdateStatus)
 	}
+
+	rss := v.Group("/statuses")
+	{
+		rss.GET("/business", base.FindStatus)
+	}
 }
 
 func (h *BusinessHandler) FindAll(c *gin.Context) {
@@ -172,7 +177,12 @@ func (h *BusinessHandler) Update(c *gin.Context) {
 	var business models.Business
 	var data *models.Business
 
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".BusinessHandler->Update()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	business.Name = c.PostForm("Name")
 	business.Code = c.PostForm("Code")
@@ -239,11 +249,28 @@ func (h *BusinessHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, h.Result)
 }
 
+func (h *BusinessHandler) FindStatus(c *gin.Context) {
+	var datas []*models.Status
+	datas = append(datas, &models.Status{ID: models.STATUS_INACTIVE, Name: "Inactive"})
+	datas = append(datas, &models.Status{ID: models.STATUS_ACTIVE, Name: "Active"})
+
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Status Data fetched!", Data: datas}
+	h.Result = gin.H{
+		"result": dataresponse,
+	}
+	c.JSON(http.StatusOK, h.Result)
+}
+
 func (h *BusinessHandler) UpdateStatus(c *gin.Context) {
 	var err *types.Error
 	var data *models.Business
 
-	businessID := c.Param("id")
+	businessID, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".BusinessHandler->UpdateStatus()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	newStatusID := c.PostForm("StatusID")
 

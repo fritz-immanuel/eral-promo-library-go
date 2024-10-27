@@ -171,7 +171,12 @@ func (h *CompanyHandler) Update(c *gin.Context) {
 	var company models.Company
 	var data *models.Company
 
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".CompanyHandler->Update()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	company.Name = c.PostForm("Name")
 	company.Code = c.PostForm("Code")
@@ -241,7 +246,12 @@ func (h *CompanyHandler) UpdateStatus(c *gin.Context) {
 	var err *types.Error
 	var data *models.Company
 
-	companyID := c.Param("id")
+	companyID, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".CompanyHandler->UpdateStatus()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	newStatusID := c.PostForm("StatusID")
 
