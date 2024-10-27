@@ -42,7 +42,7 @@ func (h BusinessHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 		rs.GET("", middleware.Auth, base.FindAll)
 		rs.GET("/:id", middleware.Auth, base.Find)
 		rs.POST("", middleware.Auth, base.Create)
-		rs.PUT("", middleware.Auth, base.Update)
+		rs.PUT("/:id", middleware.Auth, base.Update)
 
 		rs.PUT("/:id/status", middleware.Auth, base.UpdateStatus)
 	}

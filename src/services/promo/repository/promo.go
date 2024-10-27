@@ -36,6 +36,14 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 		where += fmt.Sprintf(` AND promos.%s`, params.FindAllParams.StatusID)
 	}
 
+	if params.CompanyID != "" {
+		where += ` AND promos.company_id = :company_id`
+	}
+
+	if params.BusinessID != "" {
+		where += ` AND promos.business_id = :business_id`
+	}
+
 	if params.FindAllParams.SortBy != "" {
 		where = fmt.Sprintf("%s ORDER BY %s", where, params.FindAllParams.SortBy)
 	}
@@ -46,9 +54,9 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 
 	query := fmt.Sprintf(`
   SELECT
-    promos.id, promos.name, promos.code, promos.promo_type_id, promos.img_url, promos.start_date, promos.end_date,
-    promos.company_id, promos.business_id, promos.total_promo_budget, promos.principle_support, promos.internal_support,
-    promos.description,
+    promos.id, promos.name, promos.code, promos.img_url, promos.start_date, promos.end_date, promos.company_id,
+		promos.business_id, promos.total_promo_budget, promos.principle_support, promos.internal_support,
+    promos.description, promos.approved_at, promos.approved_by,
     promos.status_id, promo_status.name AS status_name
   FROM promos
   JOIN promo_status ON promos.status_id = promo_status.id
@@ -58,6 +66,8 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
 		"limit":  params.FindAllParams.Size,
 		"offset": ((params.FindAllParams.Page - 1) * params.FindAllParams.Size),
+		"company_id": params.CompanyID,
+		"business_id": params.BusinessID,
 	})
 	if err != nil {
 		return nil, &types.Error{
@@ -75,7 +85,6 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 				ID:               v.ID,
 				Name:             v.Name,
 				Code:             v.Code,
-				PromoTypeID:      v.PromoTypeID,
 				StartDate:        v.StartDate,
 				EndDate:          v.EndDate,
 				ImgURL:           v.ImgURL,
@@ -85,6 +94,8 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 				PrincipleSupport: v.PrincipleSupport,
 				InternalSupport:  v.InternalSupport,
 				Description:      v.Description,
+				ApprovedAt:       v.ApprovedAt,
+				ApprovedBy:       v.ApprovedBy,
 				StatusID:         v.StatusID,
 				Status: models.Status{
 					ID:   v.StatusID,
@@ -105,9 +116,9 @@ func (s PromoRepository) Find(ctx *gin.Context, id string) (*models.Promo, *type
 
 	query := `
   SELECT
-    promos.id, promos.name, promos.code, promos.promo_type_id, promos.img_url, promos.start_date, promos.end_date,
-    promos.company_id, promos.business_id, promos.total_promo_budget, promos.principle_support, promos.internal_support,
-    promos.description,
+    promos.id, promos.name, promos.code, promos.img_url, promos.start_date, promos.end_date, promos.company_id,
+		promos.business_id, promos.total_promo_budget, promos.principle_support, promos.internal_support,
+    promos.description, promos.approved_at, promos.approved_by,
     promos.status_id, promo_status.name AS status_name
   FROM promos
   JOIN promo_status ON promos.status_id = promo_status.id
@@ -132,7 +143,6 @@ func (s PromoRepository) Find(ctx *gin.Context, id string) (*models.Promo, *type
 			ID:               v.ID,
 			Name:             v.Name,
 			Code:             v.Code,
-			PromoTypeID:      v.PromoTypeID,
 			StartDate:        v.StartDate,
 			EndDate:          v.EndDate,
 			ImgURL:           v.ImgURL,
@@ -142,6 +152,8 @@ func (s PromoRepository) Find(ctx *gin.Context, id string) (*models.Promo, *type
 			PrincipleSupport: v.PrincipleSupport,
 			InternalSupport:  v.InternalSupport,
 			Description:      v.Description,
+			ApprovedAt:       v.ApprovedAt,
+			ApprovedBy:       v.ApprovedBy,
 			StatusID:         v.StatusID,
 			Status: models.Status{
 				ID:   v.StatusID,

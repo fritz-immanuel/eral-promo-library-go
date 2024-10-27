@@ -107,12 +107,12 @@ func (u *PromoUsecase) Create(ctx *gin.Context, obj models.Promo) (*models.Promo
 		ID:               uuid.New().String(),
 		Name:             obj.Name,
 		Code:             obj.Code,
-		PromoTypeID:      obj.PromoTypeID,
 		StartDate:        obj.StartDate,
 		EndDate:          obj.EndDate,
 		ImgURL:           obj.ImgURL,
 		CompanyID:        obj.CompanyID,
 		BusinessID:       obj.BusinessID,
+		BrandID:          obj.BrandID,
 		TotalPromoBudget: obj.TotalPromoBudget,
 		PrincipleSupport: obj.PrincipleSupport,
 		InternalSupport:  obj.InternalSupport,
@@ -124,19 +124,6 @@ func (u *PromoUsecase) Create(ctx *gin.Context, obj models.Promo) (*models.Promo
 	if err != nil {
 		err.Path = ".PromoUsecase->Create()" + err.Path
 		return nil, err
-	}
-
-	if len(obj.PromoDocuments) > 0 {
-		for _, v := range obj.PromoDocuments {
-			v.ID = uuid.New().String()
-			v.PromoID = data.ID
-			v.StatusID = "1"
-			_, err := u.promodocumentRepo.Create(ctx, v)
-			if err != nil {
-				err.Path = ".PromoUsecase->Create()" + err.Path
-				return nil, err
-			}
-		}
 	}
 
 	return result, nil
@@ -179,10 +166,10 @@ func (u *PromoUsecase) Update(ctx *gin.Context, id string, obj models.Promo) (*m
 
 	data.Name = obj.Name
 	data.Code = obj.Code
-	data.PromoTypeID = obj.PromoTypeID
 	data.StartDate = obj.StartDate
 	data.EndDate = obj.EndDate
 	data.ImgURL = obj.ImgURL
+	data.BrandID = obj.BrandID
 	data.TotalPromoBudget = obj.TotalPromoBudget
 	data.PrincipleSupport = obj.PrincipleSupport
 	data.InternalSupport = obj.InternalSupport
@@ -218,6 +205,17 @@ func (u *PromoUsecase) UpdateStatus(ctx *gin.Context, id string, newStatusID str
 }
 
 // DOCUMENTS
+
+func (u *PromoUsecase) FindDocument(ctx *gin.Context, id string) (*models.PromoDocument, *types.Error) {
+	result, err := u.promodocumentRepo.Find(ctx, id)
+	if err != nil {
+		err.Path = ".PromoUsecase->FindDocument()" + err.Path
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (u *PromoUsecase) CreateDocument(ctx *gin.Context, obj models.PromoDocument) (*models.PromoDocument, *types.Error) {
 	err := helpers.ValidateStruct(obj)
 	if err != nil {
@@ -251,6 +249,17 @@ func (u *PromoUsecase) UpdateDocument(ctx *gin.Context, id string, obj models.Pr
 	data, err := u.promodocumentRepo.Find(ctx, id)
 	if err != nil {
 		err.Path = ".PromoUsecase->UpdateDocument()" + err.Path
+		return nil, err
+	}
+
+	if data.PromoID != obj.PromoID {
+		err = &types.Error{
+			Path:       ".PromoUsecase->UpdateDocument()",
+			Message:    "Data not found",
+			Error:      fmt.Errorf("Promo ID does not match Document Promo ID"),
+			StatusCode: http.StatusNotFound,
+			Type:       "validation-error",
+		}
 		return nil, err
 	}
 

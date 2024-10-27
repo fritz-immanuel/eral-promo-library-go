@@ -1,6 +1,7 @@
 package promo
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -50,9 +51,13 @@ func (h PromoHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router
 		rs.GET("", middleware.AuthWebApp, base.FindAll)
 		rs.GET("/:id", middleware.AuthWebApp, base.Find)
 		rs.POST("", middleware.AuthWebApp, base.Create)
-		rs.PUT("", middleware.AuthWebApp, base.Update)
+		rs.PUT("/:id", middleware.AuthWebApp, base.Update)
 
 		rs.PUT("/:id/status", middleware.AuthWebApp, base.UpdateStatus)
+
+		rs.POST("/:id/document", middleware.AuthWebApp, base.CreateDocument)
+		rs.PUT("/:id/document", middleware.AuthWebApp, base.UpdateDocument)
+		rs.DELETE("/:id/document/:documentID", middleware.AuthWebApp, base.DeleteDocument)
 	}
 
 	rss := v.Group("/statuses")
@@ -215,9 +220,14 @@ func (h *PromoHandler) Create(c *gin.Context) {
 
 	promo.Name = c.PostForm("Name")
 	promo.Code = c.PostForm("Code")
-	promo.PromoTypeID = c.PostForm("PromoTypeID")
 	promo.CompanyID = *appcontext.CompanyID(c)
 	promo.BusinessID = *appcontext.BusinessID(c)
+	promo.BrandID, err = helpers.ValidateUUID(c.PostForm("BrandID"))
+	if err != nil {
+		err.Path = ".PromoHandler->Create()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 	promo.TotalPromoBudget, _ = strconv.ParseFloat(c.PostForm("TotalPromoBudget"), 64)
 	promo.PrincipleSupport, _ = strconv.ParseFloat(c.PostForm("PrincipleSupport"), 64)
 	promo.InternalSupport, _ = strconv.ParseFloat(c.PostForm("InternalSupport"), 64)
@@ -246,36 +256,6 @@ func (h *PromoHandler) Create(c *gin.Context) {
 			}
 
 			promo.ImgURL = filename
-		}
-	}
-
-	{ // upload (multi) documents
-		multiFile, errFile := c.MultipartForm()
-		files := multiFile.File["Documents"]
-		if errFile != nil {
-			err = &types.Error{
-				Path:    ".PromoHandler->Create()",
-				Message: errFile.Error(),
-				Error:   errFile,
-				Type:    "golang-error",
-			}
-			response.Error(c, err.Message, err.StatusCode, *err)
-			return
-		}
-
-		for _, file := range files {
-			if file != nil {
-				filename, err := firebase.UploadFile(c, file, "promo")
-				if err != nil {
-					err.Path = ".PromoHandler->Create()" + err.Path
-					response.Error(c, err.Message, err.StatusCode, *err)
-					return
-				}
-
-				promo.PromoDocuments = append(promo.PromoDocuments, &models.PromoDocument{
-					DocumentURL: filename,
-				})
-			}
 		}
 	}
 
@@ -347,7 +327,12 @@ func (h *PromoHandler) Update(c *gin.Context) {
 
 	promo.Name = c.PostForm("Name")
 	promo.Code = c.PostForm("Code")
-	promo.PromoTypeID = c.PostForm("PromoTypeID")
+	promo.BrandID, err = helpers.ValidateUUID(c.PostForm("BrandID"))
+	if err != nil {
+		err.Path = ".PromoHandler->Update()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 	promo.TotalPromoBudget, _ = strconv.ParseFloat(c.PostForm("TotalPromoBudget"), 64)
 	promo.PrincipleSupport, _ = strconv.ParseFloat(c.PostForm("PrincipleSupport"), 64)
 	promo.InternalSupport, _ = strconv.ParseFloat(c.PostForm("InternalSupport"), 64)
@@ -376,36 +361,6 @@ func (h *PromoHandler) Update(c *gin.Context) {
 			}
 
 			promo.ImgURL = filename
-		}
-	}
-
-	{ // upload (multi) documents
-		multiFile, errFile := c.MultipartForm()
-		files := multiFile.File["Documents"]
-		if errFile != nil {
-			err = &types.Error{
-				Path:    ".PromoHandler->Update()",
-				Message: errFile.Error(),
-				Error:   errFile,
-				Type:    "golang-error",
-			}
-			response.Error(c, err.Message, err.StatusCode, *err)
-			return
-		}
-
-		for _, file := range files {
-			if file != nil {
-				filename, err := firebase.UploadFile(c, file, "promo")
-				if err != nil {
-					err.Path = ".PromoHandler->Update()" + err.Path
-					response.Error(c, err.Message, err.StatusCode, *err)
-					return
-				}
-
-				promo.PromoDocuments = append(promo.PromoDocuments, &models.PromoDocument{
-					DocumentURL: filename,
-				})
-			}
 		}
 	}
 
@@ -491,6 +446,196 @@ func (h *PromoHandler) UpdateStatus(c *gin.Context) {
 	}
 
 	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo Status has been updated!", Data: data}
+	h.Result = gin.H{
+		"result": dataresponse,
+	}
+
+	c.JSON(http.StatusOK, h.Result)
+}
+
+func (h *PromoHandler) CreateDocument(c *gin.Context) {
+	var err *types.Error
+	var promoDoc models.PromoDocument
+	var dataPromoDocument *models.PromoDocument
+
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".PromoHandler->CreateDocument()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	promoDoc.PromoID = id
+
+	{ // upload document
+		file, errFile := c.FormFile("Document")
+		if file != nil {
+			if errFile != nil {
+				err = &types.Error{
+					Path:       ".PromoHandler->CreateDocument()",
+					Message:    errFile.Error(),
+					Error:      errFile,
+					StatusCode: http.StatusInternalServerError,
+					Type:       "golang-error",
+				}
+				response.Error(c, err.Message, err.StatusCode, *err)
+				return
+			}
+
+			filename, err := firebase.UploadFile(c, file, "promo")
+			if err != nil {
+				err.Path = ".PromoHandler->CreateDocument()" + err.Path
+				response.Error(c, err.Message, err.StatusCode, *err)
+				return
+			}
+
+			promoDoc.DocumentURL = filename
+		}
+	}
+
+	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
+		dataPromoDocument, err = h.PromoUsecase.CreateDocument(c, promoDoc)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if errTransaction != nil {
+		errTransaction.Path = ".PromoHandler->CreateDocument()" + errTransaction.Path
+		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
+		return
+	}
+
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo Document Data created!", Data: dataPromoDocument}
+	h.Result = gin.H{
+		"result": dataresponse,
+	}
+
+	c.JSON(http.StatusOK, h.Result)
+}
+
+func (h *PromoHandler) UpdateDocument(c *gin.Context) {
+	var err *types.Error
+	var promoDoc models.PromoDocument
+	var data *models.PromoDocument
+
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".PromoHandler->UpdateDocument()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	documentID, err := helpers.ValidateUUID(c.Param("documentID"))
+	if err != nil {
+		err.Path = ".PromoHandler->UpdateDocument()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	promoDoc.PromoID = id
+
+	{ // upload document
+		file, errFile := c.FormFile("Document")
+		if file != nil {
+			if errFile != nil {
+				err = &types.Error{
+					Path:       ".PromoHandler->UpdateDocument()",
+					Message:    errFile.Error(),
+					Error:      errFile,
+					StatusCode: http.StatusInternalServerError,
+					Type:       "golang-error",
+				}
+				response.Error(c, err.Message, err.StatusCode, *err)
+				return
+			}
+
+			filename, err := firebase.UploadFile(c, file, "promo")
+			if err != nil {
+				err.Path = ".PromoHandler->UpdateDocument()" + err.Path
+				response.Error(c, err.Message, err.StatusCode, *err)
+				return
+			}
+
+			promoDoc.DocumentURL = filename
+		}
+	}
+
+	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
+		data, err = h.PromoUsecase.UpdateDocument(c, documentID, promoDoc)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if errTransaction != nil {
+		errTransaction.Path = ".PromoHandler->UpdateDocument()" + errTransaction.Path
+		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
+		return
+	}
+
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo Document Data updated!", Data: data}
+	h.Result = gin.H{
+		"result": dataresponse,
+	}
+
+	c.JSON(http.StatusOK, h.Result)
+}
+
+func (h *PromoHandler) DeleteDocument(c *gin.Context) {
+	var err *types.Error
+
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".PromoHandler->DeleteDocument()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	documentID, err := helpers.ValidateUUID(c.Param("documentID"))
+	if err != nil {
+		err.Path = ".PromoHandler->DeleteDocument()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
+		{ // check validity
+			checkData, err := h.PromoUsecase.FindDocument(c, id)
+			if err != nil {
+				return err
+			}
+
+			if checkData.PromoID != id {
+				err = &types.Error{
+					Path:       ".PromoHandler->DeleteDocument()",
+					Message:    "Data not found",
+					Error:      fmt.Errorf("Promo ID does not match Document Promo ID"),
+					StatusCode: http.StatusNotFound,
+					Type:       "validation-error",
+				}
+				return err
+			}
+		}
+
+		err = h.PromoUsecase.DeleteDocument(c, documentID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if errTransaction != nil {
+		errTransaction.Path = ".PromoHandler->DeleteDocument()" + errTransaction.Path
+		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
+		return
+	}
+
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo Document Data deleted!", Data: nil}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

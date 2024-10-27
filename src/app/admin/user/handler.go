@@ -52,7 +52,7 @@ func (h UserHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router 
 		rs.GET("", middleware.Auth, base.FindAll)
 		rs.GET("/:id", middleware.Auth, base.Find)
 		rs.POST("", middleware.Auth, base.Create)
-		rs.PUT("", middleware.Auth, base.Update)
+		rs.PUT("/:id", middleware.Auth, base.Update)
 
 		rs.PUT("/:id/password", middleware.Auth, base.UpdatePassword)
 		rs.PUT("/:id/reset-password", middleware.Auth, base.ResetPassword)
