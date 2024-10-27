@@ -4,29 +4,26 @@ import (
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 )
 
-type BusinessBulk struct {
+type CompanyBulk struct {
 	ID         string `json:"ID" db:"id"`
 	Name       string `json:"Name" db:"name"`
 	Code       string `json:"Code" db:"code"`
 	LogoImgURL string `json:"LogoImgURL" db:"logo_img_url"`
-	CompanyID  string `json:"CompanyID" db:"company_id"`
 	StatusID   string `json:"StatusID" db:"status_id"`
 
 	StatusName string `json:"StatusName" db:"status_name"`
 }
 
-type Business struct {
+type Company struct {
 	ID         string `json:"ID" db:"id"`
 	Name       string `json:"Name" db:"name"`
 	Code       string `json:"Code" db:"code"`
 	LogoImgURL string `json:"LogoImgURL" db:"logo_img_url"`
-	CompanyID  string `json:"CompanyID" db:"company_id"`
 	StatusID   string `json:"StatusID" db:"status_id"`
 
 	Status Status `json:"Status"`
 }
 
-type FindAllBusinessParams struct {
+type FindAllCompanyParams struct {
 	FindAllParams types.FindAllParams
-	CompanyID     string
 }

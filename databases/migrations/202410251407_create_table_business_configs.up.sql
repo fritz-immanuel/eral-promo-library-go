@@ -1,6 +1,6 @@
 CREATE TABLE business_configs (
   id VARCHAR(255) NOT NULL,
-  business_id INT DEFAULT 0,
+  business_id VARCHAR(255) DEFAULT '',
   sub_url_name VARCHAR(255) DEFAULT '',
   config LONGTEXT NOT NULL,
   

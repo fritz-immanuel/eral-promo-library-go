@@ -91,7 +91,6 @@ func Auth(c *gin.Context) {
 	c.Set("UserID", claimJWT["ID"])
 	c.Set("UserName", claimJWT["Name"])
 	c.Set("Email", claimJWT["Email"])
-	c.Set("BusinessID", claimJWT["BusinessID"])
 
 	if errRedis := redisClient.Set(
 		tokenString,
@@ -193,14 +192,13 @@ func Auth(c *gin.Context) {
 	}
 }
 
-func AuthMobile(c *gin.Context) {
+func AuthWebApp(c *gin.Context) {
 	config, err := configs.GetConfiguration()
 	if err != nil {
 		log.Fatalln("failed to get configuration: ", err)
 	}
 
 	// CheckIPClientIP(c, config)
-	CheckApplicationVersionMobile(c)
 
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     config.RedisAddr,
@@ -214,10 +212,9 @@ func AuthMobile(c *gin.Context) {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte("secretmobile"), nil
+		return []byte("secret"), nil
 	})
 	if err != nil {
-		// fmt.Println("test")
 		response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token Invalid"}
 		result := gin.H{
 			"result": response,
@@ -227,7 +224,7 @@ func AuthMobile(c *gin.Context) {
 		return
 	}
 
-	claimJWT, ok := library.GetJWTMobileClaims(c, tokenString)
+	claimJWT, ok := library.GetJWTClaims(c, tokenString)
 	if !ok {
 		response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token Invalid"}
 		result := gin.H{
@@ -242,7 +239,7 @@ func AuthMobile(c *gin.Context) {
 	if errRedis != nil {
 		log.Printf(`
     ======================================================================
-    Error Collecting Caching in "AuthMobile":
+    Error Collecting Caching in "Auth":
     Error: %v
     ======================================================================
     `, errRedis)
@@ -268,6 +265,7 @@ func AuthMobile(c *gin.Context) {
 	c.Set("UserID", claimJWT["ID"])
 	c.Set("UserName", claimJWT["Name"])
 	c.Set("Email", claimJWT["Email"])
+	c.Set("CompanyID", claimJWT["CompanyID"])
 	c.Set("BusinessID", claimJWT["BusinessID"])
 
 	if errRedis := redisClient.Set(
@@ -277,11 +275,90 @@ func AuthMobile(c *gin.Context) {
 	).Err(); errRedis != nil {
 		log.Printf(`
     ======================================================================
-    Error Storing Caching in "AuthMobile":
-    Error: %v,
+    Error Storing Caching in "Auth":
+    Error     : %v,
+    ErrorRedis: %v
     ======================================================================
-    `, err)
+    `, err, errRedis)
 		response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token is Expired"}
+		result := gin.H{
+			"result": response,
+		}
+		c.JSON(http.StatusUnauthorized, result)
+		c.Abort()
+		return
+	}
+
+	// check hak akses
+	route := c.Request.RequestURI
+	routeIndex := strings.Index(route, "?")
+	var fixRoute string
+
+	if routeIndex == -1 {
+		fixRoute = route
+	} else {
+		fixRoute = string([]rune(route)[0:routeIndex])
+	}
+
+	db, err := sqlx.Open("mysql", config.DBConnectionString)
+	if err != nil {
+		log.Fatalln("failed to open database x: ", err)
+	}
+	defer db.Close()
+
+	rows, err := db.Query(`SELECT
+  permission.http_method AS permission_http_method,
+  permission.route AS permission_route
+  FROM user_permissions
+  JOIN permission ON permission.id = user_permissions.permission_id
+  WHERE package = 'WebsiteApp' AND user_permissions.user_id = ?
+  `, claimJWT["ID"])
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	method := c.Request.Method
+	hasAccess := false
+	for rows.Next() {
+		var (
+			typeMethod string
+			route      string
+		)
+		if err := rows.Scan(&typeMethod, &route); err != nil {
+			log.Fatal(err)
+		}
+
+		data := models.Permission{
+			HTTPMethod: typeMethod,
+			Route:      route,
+		}
+
+		checkRoute := true
+		arrRoutes := strings.Split(data.Route, "/")
+
+		arrFixRoutes := strings.Split(fixRoute, "/")
+
+		if len(arrRoutes) == len(arrFixRoutes) {
+			for i, arrRoute := range arrRoutes {
+
+				if arrRoute != arrFixRoutes[i] && !strings.HasPrefix(arrRoute, ":") {
+
+					checkRoute = false
+					break
+				}
+			}
+		} else {
+			checkRoute = false
+		}
+
+		if checkRoute && data.HTTPMethod == method {
+			hasAccess = true
+		}
+	}
+
+	if !hasAccess {
+		response := types.Result{Status: "Warning", StatusCode: http.StatusForbidden, Message: "No Permission Access"}
 		result := gin.H{
 			"result": response,
 		}

@@ -3,6 +3,7 @@ package web
 import (
 	http_business "github.com/fritz-immanuel/eral-promo-library-go/src/app/web/business"
 	http_businessconfig "github.com/fritz-immanuel/eral-promo-library-go/src/app/web/businessconfig"
+	http_company "github.com/fritz-immanuel/eral-promo-library-go/src/app/web/company"
 	http_employee "github.com/fritz-immanuel/eral-promo-library-go/src/app/web/employee"
 	http_promo "github.com/fritz-immanuel/eral-promo-library-go/src/app/web/promo"
 
@@ -14,6 +15,7 @@ import (
 var (
 	businessHandler       http_business.BusinessHandler
 	businessconfigHandler http_businessconfig.BusinessConfigHandler
+	companyHandler        http_company.CompanyHandler
 	employeeHandler       http_employee.EmployeeHandler
 	promoHandler          http_promo.PromoHandler
 )
@@ -23,6 +25,7 @@ func RegisterRoutes(db *sqlx.DB, dataManager *data.Manager, router *gin.Engine, 
 	{
 		businessHandler.RegisterAPI(db, dataManager, router, v1)
 		businessconfigHandler.RegisterAPI(db, dataManager, router, v1)
+		companyHandler.RegisterAPI(db, dataManager, router, v1)
 		employeeHandler.RegisterAPI(db, dataManager, router, v1)
 		promoHandler.RegisterAPI(db, dataManager, router, v1)
 	}

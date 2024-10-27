@@ -3,7 +3,7 @@ CREATE TABLE promos (
   name VARCHAR(255) DEFAULT '',
   code VARCHAR(255) DEFAULT '',
   promo_type_id VARCHAR(255) NOT NULL,
-  img_url VARCHAR(255) DEFAULT '',
+  img_url LONGTEXT NOT NULL,
   company_id VARCHAR(255) DEFAULT '',
   business_id VARCHAR(255) DEFAULT '',
   total_promo_budget DECIMAL(25,2) DEFAULT 0.0,

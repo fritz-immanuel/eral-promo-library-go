@@ -48,9 +48,9 @@ func (h EmployeeHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 
 	rs := v.Group("/employees")
 	{
-		rs.GET("/profile", middleware.Auth, base.Find)
+		rs.GET("/profile", middleware.AuthWebApp, base.Find)
 
-		rs.PUT("/profile/password", middleware.Auth, base.UpdatePassword)
+		rs.PUT("/profile/password", middleware.AuthWebApp, base.UpdatePassword)
 	}
 
 	rsa := v.Group("/employees/auth")

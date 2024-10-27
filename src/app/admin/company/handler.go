@@ -1,4 +1,4 @@
-package business
+package company
 
 import (
 	"net/http"
@@ -9,35 +9,35 @@ import (
 	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/middleware"
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
-	"github.com/fritz-immanuel/eral-promo-library-go/src/services/business"
+	"github.com/fritz-immanuel/eral-promo-library-go/src/services/company"
 	"github.com/gin-gonic/gin"
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library/data"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/http/response"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 
-	businessRepository "github.com/fritz-immanuel/eral-promo-library-go/src/services/business/repository"
-	businessUsecase "github.com/fritz-immanuel/eral-promo-library-go/src/services/business/usecase"
+	companyRepository "github.com/fritz-immanuel/eral-promo-library-go/src/services/company/repository"
+	companyUsecase "github.com/fritz-immanuel/eral-promo-library-go/src/services/company/usecase"
 )
 
-type BusinessHandler struct {
-	BusinessUsecase business.Usecase
-	dataManager     *data.Manager
-	Result          gin.H
-	Status          int
+type CompanyHandler struct {
+	CompanyUsecase company.Usecase
+	dataManager    *data.Manager
+	Result         gin.H
+	Status         int
 }
 
-func (h BusinessHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router *gin.Engine, v *gin.RouterGroup) {
-	businessRepo := businessRepository.NewBusinessRepository(
-		data.NewMySQLStorage(db, "business", models.Business{}, data.MysqlConfig{}),
+func (h CompanyHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router *gin.Engine, v *gin.RouterGroup) {
+	companyRepo := companyRepository.NewCompanyRepository(
+		data.NewMySQLStorage(db, "companies", models.Company{}, data.MysqlConfig{}),
 		data.NewMySQLStorage(db, "status", models.Status{}, data.MysqlConfig{}),
 	)
 
-	uBusiness := businessUsecase.NewBusinessUsecase(db, businessRepo)
+	uCompany := companyUsecase.NewCompanyUsecase(db, companyRepo)
 
-	base := &BusinessHandler{BusinessUsecase: uBusiness, dataManager: dataManager}
+	base := &CompanyHandler{CompanyUsecase: uCompany, dataManager: dataManager}
 
-	rs := v.Group("/business")
+	rs := v.Group("/company")
 	{
 		rs.GET("", middleware.Auth, base.FindAll)
 		rs.GET("/:id", middleware.Auth, base.Find)
@@ -48,13 +48,13 @@ func (h BusinessHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 	}
 }
 
-func (h *BusinessHandler) FindAll(c *gin.Context) {
-	var params models.FindAllBusinessParams
+func (h *CompanyHandler) FindAll(c *gin.Context) {
+	var params models.FindAllCompanyParams
 	page, size := helpers.FilterFindAll(c)
 	filterFindAllParams := helpers.FilterFindAllParam(c)
 	params.FindAllParams = filterFindAllParams
-	params.FindAllParams.SortBy = "business.name ASC"
-	datas, err := h.BusinessUsecase.FindAll(c, params)
+	params.FindAllParams.SortBy = "companies.name ASC"
+	datas, err := h.CompanyUsecase.FindAll(c, params)
 	if err != nil {
 		if err.Error != data.ErrNotFound {
 			response.Error(c, err.Message, err.StatusCode, *err)
@@ -70,30 +70,30 @@ func (h *BusinessHandler) FindAll(c *gin.Context) {
 
 	params.FindAllParams.Page = -1
 	params.FindAllParams.Size = -1
-	length, err := h.BusinessUsecase.Count(c, params)
+	length, err := h.CompanyUsecase.Count(c, params)
 	if err != nil {
-		err.Path = ".BusinessHandler->FindAll()" + err.Path
+		err.Path = ".CompanyHandler->FindAll()" + err.Path
 		if err.Error != data.ErrNotFound {
 			response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
 			return
 		}
 	}
 
-	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data fetched!", TotalData: length, Page: page, Size: size, Data: datas}
+	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Company Data fetched!", TotalData: length, Page: page, Size: size, Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
 	c.JSON(h.Status, h.Result)
 }
 
-func (h *BusinessHandler) Find(c *gin.Context) {
+func (h *CompanyHandler) Find(c *gin.Context) {
 	id := c.Param("id")
 
-	result, err := h.BusinessUsecase.Find(c, id)
+	result, err := h.CompanyUsecase.Find(c, id)
 	if err != nil {
-		err.Path = ".BusinessHandler->Find()" + err.Path
+		err.Path = ".CompanyHandler->Find()" + err.Path
 		if err.Error == data.ErrNotFound {
-			response.Error(c, "Business not found", http.StatusUnprocessableEntity, *err)
+			response.Error(c, "Company not found", http.StatusUnprocessableEntity, *err)
 			return
 		}
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
@@ -104,7 +104,7 @@ func (h *BusinessHandler) Find(c *gin.Context) {
 		result.LogoImgURL, _ = firebase.GenerateSignedURL(result.LogoImgURL)
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data fetched!", Data: result}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Company Data fetched!", Data: result}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -112,20 +112,19 @@ func (h *BusinessHandler) Find(c *gin.Context) {
 	c.JSON(http.StatusOK, h.Result)
 }
 
-func (h *BusinessHandler) Create(c *gin.Context) {
+func (h *CompanyHandler) Create(c *gin.Context) {
 	var err *types.Error
-	var business models.Business
-	var dataBusiness *models.Business
+	var company models.Company
+	var dataCompany *models.Company
 
-	business.Name = c.PostForm("Name")
-	business.Code = c.PostForm("Code")
-	business.CompanyID = c.PostForm("CompanyID")
+	company.Name = c.PostForm("Name")
+	company.Code = c.PostForm("Code")
 
 	file, errFile := c.FormFile("LogoImgURL")
 	if file != nil {
 		if errFile != nil {
 			err = &types.Error{
-				Path:       ".BusinessHandler->Create()",
+				Path:       ".CompanyHandler->Create()",
 				Message:    errFile.Error(),
 				Error:      errFile,
 				StatusCode: http.StatusInternalServerError,
@@ -135,18 +134,18 @@ func (h *BusinessHandler) Create(c *gin.Context) {
 			return
 		}
 
-		filename, err := firebase.UploadFile(c, file, "business")
+		filename, err := firebase.UploadFile(c, file, "company")
 		if err != nil {
-			err.Path = ".BusinessHandler->Create()" + err.Path
+			err.Path = ".CompanyHandler->Create()" + err.Path
 			response.Error(c, err.Message, err.StatusCode, *err)
 			return
 		}
 
-		business.LogoImgURL = filename
+		company.LogoImgURL = filename
 	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		dataBusiness, err = h.BusinessUsecase.Create(c, business)
+		dataCompany, err = h.CompanyUsecase.Create(c, company)
 		if err != nil {
 			return err
 		}
@@ -154,12 +153,12 @@ func (h *BusinessHandler) Create(c *gin.Context) {
 		return nil
 	})
 	if errTransaction != nil {
-		errTransaction.Path = ".BusinessHandler->Create()" + errTransaction.Path
+		errTransaction.Path = ".CompanyHandler->Create()" + errTransaction.Path
 		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data created!", Data: dataBusiness}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Company Data created!", Data: dataCompany}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -167,22 +166,21 @@ func (h *BusinessHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, h.Result)
 }
 
-func (h *BusinessHandler) Update(c *gin.Context) {
+func (h *CompanyHandler) Update(c *gin.Context) {
 	var err *types.Error
-	var business models.Business
-	var data *models.Business
+	var company models.Company
+	var data *models.Company
 
 	id := c.Param("id")
 
-	business.Name = c.PostForm("Name")
-	business.Code = c.PostForm("Code")
-	business.CompanyID = c.PostForm("CompanyID")
+	company.Name = c.PostForm("Name")
+	company.Code = c.PostForm("Code")
 
 	file, errFile := c.FormFile("LogoImgURL")
 	if file != nil {
 		if errFile != nil {
 			err = &types.Error{
-				Path:       ".BusinessHandler->Update()",
+				Path:       ".CompanyHandler->Update()",
 				Message:    errFile.Error(),
 				Error:      errFile,
 				StatusCode: http.StatusInternalServerError,
@@ -192,32 +190,32 @@ func (h *BusinessHandler) Update(c *gin.Context) {
 			return
 		}
 
-		filename, err := firebase.UploadFile(c, file, "business")
+		filename, err := firebase.UploadFile(c, file, "company")
 		if err != nil {
-			err.Path = ".BusinessHandler->Update()" + err.Path
+			err.Path = ".CompanyHandler->Update()" + err.Path
 			response.Error(c, err.Message, err.StatusCode, *err)
 			return
 		}
 
-		business.LogoImgURL = filename
+		company.LogoImgURL = filename
 	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
 		{ // delete existing logo
-			businessData, err := h.BusinessUsecase.Find(c, id)
+			companyData, err := h.CompanyUsecase.Find(c, id)
 			if err != nil {
 				return err
 			}
 
-			if businessData.LogoImgURL != "" {
-				err := firebase.DeleteFile(c, businessData.LogoImgURL)
+			if companyData.LogoImgURL != "" {
+				err := firebase.DeleteFile(c, companyData.LogoImgURL)
 				if err != nil {
 					return err
 				}
 			}
 		}
 
-		data, err = h.BusinessUsecase.Update(c, id, business)
+		data, err = h.CompanyUsecase.Update(c, id, company)
 		if err != nil {
 			return err
 		}
@@ -226,12 +224,12 @@ func (h *BusinessHandler) Update(c *gin.Context) {
 	})
 
 	if errTransaction != nil {
-		errTransaction.Path = ".BusinessHandler->Update()" + errTransaction.Path
+		errTransaction.Path = ".CompanyHandler->Update()" + errTransaction.Path
 		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data updated!", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Company Data updated!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -239,16 +237,16 @@ func (h *BusinessHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, h.Result)
 }
 
-func (h *BusinessHandler) UpdateStatus(c *gin.Context) {
+func (h *CompanyHandler) UpdateStatus(c *gin.Context) {
 	var err *types.Error
-	var data *models.Business
+	var data *models.Company
 
-	businessID := c.Param("id")
+	companyID := c.Param("id")
 
 	newStatusID := c.PostForm("StatusID")
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		data, err = h.BusinessUsecase.UpdateStatus(c, businessID, newStatusID)
+		data, err = h.CompanyUsecase.UpdateStatus(c, companyID, newStatusID)
 		if err != nil {
 			return err
 		}
@@ -257,12 +255,12 @@ func (h *BusinessHandler) UpdateStatus(c *gin.Context) {
 	})
 
 	if errTransaction != nil {
-		errTransaction.Path = ".BusinessHandler->UpdateStatus()" + errTransaction.Path
+		errTransaction.Path = ".CompanyHandler->UpdateStatus()" + errTransaction.Path
 		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Status has been updated!", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Company Status has been updated!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

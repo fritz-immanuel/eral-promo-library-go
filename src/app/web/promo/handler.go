@@ -47,12 +47,12 @@ func (h PromoHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router
 
 	rs := v.Group("/promos")
 	{
-		rs.GET("", middleware.Auth, base.FindAll)
-		rs.GET("/:id", middleware.Auth, base.Find)
-		rs.POST("", middleware.Auth, base.Create)
-		rs.PUT("", middleware.Auth, base.Update)
+		rs.GET("", middleware.AuthWebApp, base.FindAll)
+		rs.GET("/:id", middleware.AuthWebApp, base.Find)
+		rs.POST("", middleware.AuthWebApp, base.Create)
+		rs.PUT("", middleware.AuthWebApp, base.Update)
 
-		rs.PUT("/:id/status", middleware.Auth, base.UpdateStatus)
+		rs.PUT("/:id/status", middleware.AuthWebApp, base.UpdateStatus)
 	}
 
 	rss := v.Group("/statuses")

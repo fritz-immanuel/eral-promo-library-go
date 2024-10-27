@@ -66,6 +66,7 @@ func (u *BusinessUsecase) Create(ctx *gin.Context, obj models.Business) (*models
 		Name:       obj.Name,
 		Code:       obj.Code,
 		LogoImgURL: obj.LogoImgURL,
+		CompanyID:  obj.CompanyID,
 		StatusID:   obj.StatusID,
 	}
 
@@ -88,6 +89,7 @@ func (u *BusinessUsecase) Update(ctx *gin.Context, id string, obj models.Busines
 	data.Name = obj.Name
 	data.Code = obj.Code
 	data.LogoImgURL = obj.LogoImgURL
+	data.CompanyID = obj.CompanyID
 
 	result, err := u.businessRepo.Update(ctx, data)
 	if err != nil {

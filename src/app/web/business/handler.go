@@ -39,8 +39,8 @@ func (h BusinessHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 
 	rs := v.Group("/business")
 	{
-		rs.GET("", middleware.Auth, base.FindAll)
-		rs.GET("/:id", middleware.Auth, base.Find)
+		rs.GET("", middleware.AuthWebApp, base.FindAll)
+		rs.GET("/:id", middleware.AuthWebApp, base.Find)
 	}
 }
 

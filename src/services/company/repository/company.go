@@ -10,19 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type BusinessRepository struct {
+type CompanyRepository struct {
 	repository       data.GenericStorage
 	statusRepository data.GenericStorage
 }
 
-func NewBusinessRepository(repository data.GenericStorage, statusRepository data.GenericStorage) BusinessRepository {
-	return BusinessRepository{repository: repository, statusRepository: statusRepository}
+func NewCompanyRepository(repository data.GenericStorage, statusRepository data.GenericStorage) CompanyRepository {
+	return CompanyRepository{repository: repository, statusRepository: statusRepository}
 }
 
 // A function to get all Data that matches the filter provided
-func (s BusinessRepository) FindAll(ctx *gin.Context, params models.FindAllBusinessParams) ([]*models.Business, *types.Error) {
-	result := []*models.Business{}
-	bulks := []*models.BusinessBulk{}
+func (s CompanyRepository) FindAll(ctx *gin.Context, params models.FindAllCompanyParams) ([]*models.Company, *types.Error) {
+	result := []*models.Company{}
+	bulks := []*models.CompanyBulk{}
 
 	var err error
 
@@ -33,7 +33,7 @@ func (s BusinessRepository) FindAll(ctx *gin.Context, params models.FindAllBusin
 	}
 
 	if params.FindAllParams.StatusID != "" {
-		where += fmt.Sprintf(` AND business.%s`, params.FindAllParams.StatusID)
+		where += fmt.Sprintf(` AND companies.%s`, params.FindAllParams.StatusID)
 	}
 
 	if params.FindAllParams.SortBy != "" {
@@ -46,11 +46,11 @@ func (s BusinessRepository) FindAll(ctx *gin.Context, params models.FindAllBusin
 
 	query := fmt.Sprintf(`
   SELECT
-    business.id, business.name, business.code, business.logo_img_url, business.company_id,
-    business.status_id,
+    companies.id, companies.name, companies.code, companies.logo_img_url,
+    companies.status_id,
     status.name AS status_name
-  FROM business
-  JOIN status ON business.status_id = status.id
+  FROM companies
+  JOIN status ON companies.status_id = status.id
   WHERE %s
   `, where)
 
@@ -60,7 +60,7 @@ func (s BusinessRepository) FindAll(ctx *gin.Context, params models.FindAllBusin
 	})
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".BusinessStorage->FindAll()",
+			Path:       ".CompanyStorage->FindAll()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -70,12 +70,11 @@ func (s BusinessRepository) FindAll(ctx *gin.Context, params models.FindAllBusin
 
 	if len(bulks) > 0 {
 		for _, v := range bulks {
-			result = append(result, &models.Business{
+			result = append(result, &models.Company{
 				ID:         v.ID,
 				Name:       v.Name,
 				Code:       v.Code,
 				LogoImgURL: v.LogoImgURL,
-				CompanyID:  v.CompanyID,
 				StatusID:   v.StatusID,
 				Status: models.Status{
 					ID:   v.StatusID,
@@ -89,26 +88,26 @@ func (s BusinessRepository) FindAll(ctx *gin.Context, params models.FindAllBusin
 }
 
 // A function to get a row of data specified by the given ID
-func (s BusinessRepository) Find(ctx *gin.Context, id string) (*models.Business, *types.Error) {
-	result := models.Business{}
-	bulks := []*models.BusinessBulk{}
+func (s CompanyRepository) Find(ctx *gin.Context, id string) (*models.Company, *types.Error) {
+	result := models.Company{}
+	bulks := []*models.CompanyBulk{}
 	var err error
 
 	query := `
   SELECT
-    business.id, business.name, business.code, business.logo_img_url, business.company_id,
-    business.status_id,
+    companies.id, companies.name, companies.code, companies.logo_img_url,
+    companies.status_id,
     status.name AS status_name
-  FROM business
-  JOIN status ON business.status_id = status.id
-  WHERE business.id = :id`
+  FROM companies
+  JOIN status ON companies.status_id = status.id
+  WHERE companies.id = :id`
 
 	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
 		"id": id,
 	})
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".BusinessStorage->Find()",
+			Path:       ".CompanyStorage->Find()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -118,12 +117,11 @@ func (s BusinessRepository) Find(ctx *gin.Context, id string) (*models.Business,
 
 	if len(bulks) > 0 {
 		v := bulks[0]
-		result = models.Business{
+		result = models.Company{
 			ID:         v.ID,
 			Name:       v.Name,
 			Code:       v.Code,
 			LogoImgURL: v.LogoImgURL,
-			CompanyID:  v.CompanyID,
 			StatusID:   v.StatusID,
 			Status: models.Status{
 				ID:   v.StatusID,
@@ -132,7 +130,7 @@ func (s BusinessRepository) Find(ctx *gin.Context, id string) (*models.Business,
 		}
 	} else {
 		return nil, &types.Error{
-			Path:       ".BusinessStorage->Find()",
+			Path:       ".CompanyStorage->Find()",
 			Message:    "Data Not Found",
 			Error:      data.ErrNotFound,
 			StatusCode: http.StatusNotFound,
@@ -144,12 +142,12 @@ func (s BusinessRepository) Find(ctx *gin.Context, id string) (*models.Business,
 }
 
 // Inserts a new row of data
-func (s BusinessRepository) Create(ctx *gin.Context, obj *models.Business) (*models.Business, *types.Error) {
-	data := models.Business{}
+func (s CompanyRepository) Create(ctx *gin.Context, obj *models.Company) (*models.Company, *types.Error) {
+	data := models.Company{}
 	_, err := s.repository.Insert(ctx, obj)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".BusinessStorage->Create()",
+			Path:       ".CompanyStorage->Create()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -160,7 +158,7 @@ func (s BusinessRepository) Create(ctx *gin.Context, obj *models.Business) (*mod
 	err = s.repository.FindByID(ctx, &data, obj.ID)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".BusinessStorage->Create()",
+			Path:       ".CompanyStorage->Create()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -171,12 +169,12 @@ func (s BusinessRepository) Create(ctx *gin.Context, obj *models.Business) (*mod
 }
 
 // Updates a row of data specified by the given ID inside the obj struct
-func (s BusinessRepository) Update(ctx *gin.Context, obj *models.Business) (*models.Business, *types.Error) {
-	data := models.Business{}
+func (s CompanyRepository) Update(ctx *gin.Context, obj *models.Company) (*models.Company, *types.Error) {
+	data := models.Company{}
 	err := s.repository.Update(ctx, obj)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".BusinessStorage->Update()",
+			Path:       ".CompanyStorage->Update()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -187,7 +185,7 @@ func (s BusinessRepository) Update(ctx *gin.Context, obj *models.Business) (*mod
 	err = s.repository.FindByID(ctx, &data, obj.ID)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".BusinessStorage->Update()",
+			Path:       ".CompanyStorage->Update()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -197,12 +195,12 @@ func (s BusinessRepository) Update(ctx *gin.Context, obj *models.Business) (*mod
 	return &data, nil
 }
 
-func (s BusinessRepository) UpdateStatus(ctx *gin.Context, id string, statusID string) (*models.Business, *types.Error) {
-	data := models.Business{}
+func (s CompanyRepository) UpdateStatus(ctx *gin.Context, id string, statusID string) (*models.Company, *types.Error) {
+	data := models.Company{}
 	err := s.repository.UpdateStatus(ctx, id, statusID)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".BusinessStorage->UpdateStatus()",
+			Path:       ".CompanyStorage->UpdateStatus()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
@@ -213,7 +211,7 @@ func (s BusinessRepository) UpdateStatus(ctx *gin.Context, id string, statusID s
 	err = s.repository.FindByID(ctx, &data, id)
 	if err != nil {
 		return nil, &types.Error{
-			Path:       ".BusinessStorage->UpdateStatus()",
+			Path:       ".CompanyStorage->UpdateStatus()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,
