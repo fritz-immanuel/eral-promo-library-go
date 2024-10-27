@@ -8,6 +8,8 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library"
+	"github.com/fritz-immanuel/eral-promo-library-go/library/appcontext"
+	"github.com/fritz-immanuel/eral-promo-library-go/library/firebase"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/middleware"
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
@@ -64,6 +66,41 @@ func (h *PromoHandler) FindAll(c *gin.Context) {
 	page, size := helpers.FilterFindAll(c)
 	filterFindAllParams := helpers.FilterFindAllParam(c)
 	params.FindAllParams = filterFindAllParams
+	params.CompanyID = *appcontext.CompanyID(c)
+	params.BusinessID = *appcontext.BusinessID(c)
+
+	if c.Query("StartDate") != "" {
+		startDateTime, errConversion := time.Parse(library.DateStampFormat(), c.Query("StartDate"))
+		if errConversion != nil {
+			err := &types.Error{
+				Path:       ".PromoHandler->FindAll()",
+				Message:    "Incorrect Start Date Format",
+				Error:      errConversion,
+				Type:       "conversion-error",
+				StatusCode: http.StatusBadRequest,
+			}
+			response.Error(c, err.Message, err.StatusCode, *err)
+			return
+		}
+		params.StartDate = &startDateTime
+	}
+
+	if c.Query("EndDate") != "" {
+		endDateTime, errConversion := time.Parse(library.DateStampFormat(), c.Query("EndDate"))
+		if errConversion != nil {
+			err := &types.Error{
+				Path:       ".PromoHandler->FindAll()",
+				Message:    "Incorrect End Date Format",
+				Error:      errConversion,
+				Type:       "conversion-error",
+				StatusCode: http.StatusBadRequest,
+			}
+			response.Error(c, err.Message, err.StatusCode, *err)
+			return
+		}
+		params.EndDate = &endDateTime
+	}
+
 	params.FindAllParams.SortBy = "promos.name ASC"
 	datas, err := h.PromoUsecase.FindAll(c, params)
 	if err != nil {
@@ -73,18 +110,24 @@ func (h *PromoHandler) FindAll(c *gin.Context) {
 		}
 	}
 
+	for _, data := range datas {
+		if data.ImgURL != "" {
+			data.ImgURL, _ = firebase.GenerateSignedURL(data.ImgURL)
+		}
+	}
+
 	params.FindAllParams.Page = -1
 	params.FindAllParams.Size = -1
 	length, err := h.PromoUsecase.Count(c, params)
 	if err != nil {
 		err.Path = ".PromoHandler->FindAll()" + err.Path
 		if err.Error != data.ErrNotFound {
-			response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
+			response.Error(c, err.Message, http.StatusInternalServerError, *err)
 			return
 		}
 	}
 
-	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Promo Berhasil Ditampilkan", TotalData: length, Page: page, Size: size, Data: datas}
+	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo Data fetched!", TotalData: length, Page: page, Size: size, Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -103,14 +146,29 @@ func (h *PromoHandler) Find(c *gin.Context) {
 	if err != nil {
 		err.Path = ".PromoHandler->Find()" + err.Path
 		if err.Error == data.ErrNotFound {
-			response.Error(c, "Promo not found", http.StatusUnprocessableEntity, *err)
+			response.Error(c, "Promo not found", http.StatusNotFound, *err)
 			return
 		}
-		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
+		response.Error(c, err.Message, http.StatusInternalServerError, *err)
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Promo Berhasil Ditampilkan", Data: result}
+	if result.CompanyID != *appcontext.CompanyID(c) || result.BusinessID != *appcontext.BusinessID(c) {
+		response.Error(c, "Promo not found", http.StatusNotFound, *err)
+		return
+	}
+
+	if result.ImgURL != "" {
+		result.ImgURL, _ = firebase.GenerateSignedURL(result.ImgURL)
+	}
+
+	if len(result.PromoDocuments) > 0 {
+		for _, docs := range result.PromoDocuments {
+			docs.DocumentURL, _ = firebase.GenerateSignedURL(docs.DocumentURL)
+		}
+	}
+
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo Data fetched!", Data: result}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -158,15 +216,68 @@ func (h *PromoHandler) Create(c *gin.Context) {
 	promo.Name = c.PostForm("Name")
 	promo.Code = c.PostForm("Code")
 	promo.PromoTypeID = c.PostForm("PromoTypeID")
-	promo.CompanyID = c.PostForm("CompanyID")
-	promo.BusinessID = c.PostForm("BusinessID")
+	promo.CompanyID = *appcontext.CompanyID(c)
+	promo.BusinessID = *appcontext.BusinessID(c)
 	promo.TotalPromoBudget, _ = strconv.ParseFloat(c.PostForm("TotalPromoBudget"), 64)
 	promo.PrincipleSupport, _ = strconv.ParseFloat(c.PostForm("PrincipleSupport"), 64)
 	promo.InternalSupport, _ = strconv.ParseFloat(c.PostForm("InternalSupport"), 64)
 	promo.Description = c.PostForm("Description")
 
-	// TODO: upload img
-	// TODO: upload documents
+	{ // upload img
+		file, errFile := c.FormFile("ImgURL")
+		if file != nil {
+			if errFile != nil {
+				err = &types.Error{
+					Path:       ".PromoHandler->Create()",
+					Message:    errFile.Error(),
+					Error:      errFile,
+					StatusCode: http.StatusInternalServerError,
+					Type:       "golang-error",
+				}
+				response.Error(c, err.Message, err.StatusCode, *err)
+				return
+			}
+
+			filename, err := firebase.UploadFile(c, file, "promo")
+			if err != nil {
+				err.Path = ".PromoHandler->Create()" + err.Path
+				response.Error(c, err.Message, err.StatusCode, *err)
+				return
+			}
+
+			promo.ImgURL = filename
+		}
+	}
+
+	{ // upload (multi) documents
+		multiFile, errFile := c.MultipartForm()
+		files := multiFile.File["Documents"]
+		if errFile != nil {
+			err = &types.Error{
+				Path:    ".PromoHandler->Create()",
+				Message: errFile.Error(),
+				Error:   errFile,
+				Type:    "golang-error",
+			}
+			response.Error(c, err.Message, err.StatusCode, *err)
+			return
+		}
+
+		for _, file := range files {
+			if file != nil {
+				filename, err := firebase.UploadFile(c, file, "promo")
+				if err != nil {
+					err.Path = ".PromoHandler->Create()" + err.Path
+					response.Error(c, err.Message, err.StatusCode, *err)
+					return
+				}
+
+				promo.PromoDocuments = append(promo.PromoDocuments, &models.PromoDocument{
+					DocumentURL: filename,
+				})
+			}
+		}
+	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
 		dataPromo, err = h.PromoUsecase.Create(c, promo)
@@ -182,7 +293,7 @@ func (h *PromoHandler) Create(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Promo Berhasil Ditambahkan", Data: dataPromo}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo Data created!", Data: dataPromo}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -237,17 +348,82 @@ func (h *PromoHandler) Update(c *gin.Context) {
 	promo.Name = c.PostForm("Name")
 	promo.Code = c.PostForm("Code")
 	promo.PromoTypeID = c.PostForm("PromoTypeID")
-	promo.CompanyID = c.PostForm("CompanyID")
-	promo.BusinessID = c.PostForm("BusinessID")
 	promo.TotalPromoBudget, _ = strconv.ParseFloat(c.PostForm("TotalPromoBudget"), 64)
 	promo.PrincipleSupport, _ = strconv.ParseFloat(c.PostForm("PrincipleSupport"), 64)
 	promo.InternalSupport, _ = strconv.ParseFloat(c.PostForm("InternalSupport"), 64)
 	promo.Description = c.PostForm("Description")
 
-	// TODO: upload img
-	// TODO: upload documents
+	{ // upload img
+		file, errFile := c.FormFile("ImgURL")
+		if file != nil {
+			if errFile != nil {
+				err = &types.Error{
+					Path:       ".PromoHandler->Update()",
+					Message:    errFile.Error(),
+					Error:      errFile,
+					StatusCode: http.StatusInternalServerError,
+					Type:       "golang-error",
+				}
+				response.Error(c, err.Message, err.StatusCode, *err)
+				return
+			}
+
+			filename, err := firebase.UploadFile(c, file, "promo")
+			if err != nil {
+				err.Path = ".PromoHandler->Update()" + err.Path
+				response.Error(c, err.Message, err.StatusCode, *err)
+				return
+			}
+
+			promo.ImgURL = filename
+		}
+	}
+
+	{ // upload (multi) documents
+		multiFile, errFile := c.MultipartForm()
+		files := multiFile.File["Documents"]
+		if errFile != nil {
+			err = &types.Error{
+				Path:    ".PromoHandler->Update()",
+				Message: errFile.Error(),
+				Error:   errFile,
+				Type:    "golang-error",
+			}
+			response.Error(c, err.Message, err.StatusCode, *err)
+			return
+		}
+
+		for _, file := range files {
+			if file != nil {
+				filename, err := firebase.UploadFile(c, file, "promo")
+				if err != nil {
+					err.Path = ".PromoHandler->Update()" + err.Path
+					response.Error(c, err.Message, err.StatusCode, *err)
+					return
+				}
+
+				promo.PromoDocuments = append(promo.PromoDocuments, &models.PromoDocument{
+					DocumentURL: filename,
+				})
+			}
+		}
+	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
+		{ // delete existing img
+			promoData, err := h.PromoUsecase.Find(c, *id)
+			if err != nil {
+				return err
+			}
+
+			if promoData.ImgURL != "" {
+				err := firebase.DeleteFile(c, promoData.ImgURL)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 		data, err = h.PromoUsecase.Update(c, *id, promo)
 		if err != nil {
 			return err
@@ -262,7 +438,7 @@ func (h *PromoHandler) Update(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Promo Berhasil Ditambahkan", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo Data updated!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

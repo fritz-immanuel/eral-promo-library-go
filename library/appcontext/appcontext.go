@@ -34,6 +34,9 @@ const (
 	// KeyCompanyID represents the current logged-in CompanyID
 	KeyCompanyID contextKey = "CompanyID"
 
+	// KeyBusinessID represents the current logged-in BusinessID
+	KeyBusinessID contextKey = "BusinessID"
+
 	// KeyLoginToken represents the current logged-in token
 	KeyLoginToken contextKey = "LoginToken"
 
@@ -195,6 +198,21 @@ func CompanyID(ctx *gin.Context) *string {
 			return &v
 		} else {
 			v := fmt.Sprintf("%v", companyID)
+			return &v
+		}
+	}
+	return nil
+}
+
+// BusinessID gets current prefered BusinessID of Employee or User ID
+func BusinessID(ctx *gin.Context) *string {
+	businessID := ctx.Value(fmt.Sprintf("%v", KeyBusinessID))
+	if businessID != nil {
+		if reflect.ValueOf(businessID).Kind().String() == "string" {
+			v := businessID.(string)
+			return &v
+		} else {
+			v := fmt.Sprintf("%v", businessID)
 			return &v
 		}
 	}

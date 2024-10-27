@@ -95,7 +95,7 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 		}
 	}
 
-	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Ditampilkan", TotalData: length, Page: page, Size: size, Data: datas}
+	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "User Data fetched!", TotalData: length, Page: page, Size: size, Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -115,7 +115,7 @@ func (h *UserHandler) Find(c *gin.Context) {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Ditampilkan", Data: result}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "User Data fetched!", Data: result}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -162,7 +162,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Ditambahkan", Data: dataUser}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "User Data created!", Data: dataUser}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -206,7 +206,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Ditambahkan", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "User Data updated!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -294,7 +294,7 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Diperbarui", Data: dataUser}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "User Password has been updated!", Data: dataUser}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -324,7 +324,7 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "User berhasil direset password", Data: dataUser}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "User Password reset successful", Data: dataUser}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -337,7 +337,7 @@ func (h *UserHandler) FindStatus(c *gin.Context) {
 	datas = append(datas, &models.Status{ID: models.STATUS_INACTIVE, Name: "Inactive"})
 	datas = append(datas, &models.Status{ID: models.STATUS_ACTIVE, Name: "Active"})
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data User Berhasil Ditampilkan", Data: datas}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "User Status Data fetched!", Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -367,7 +367,7 @@ func (h *UserHandler) UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Status User Berhasil Diubah", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "User Status has been updated!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -403,7 +403,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Login berhasil", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Login successful", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

@@ -13,8 +13,8 @@ type PromoDocumentBulk struct {
 
 type PromoDocument struct {
 	ID          string `json:"ID" db:"id"`
-	PromoID     string `json:"PromoID" db:"promo_id"`
-	DocumentURL string `json:"DocumentURL" db:"document_url"`
+	PromoID     string `json:"PromoID" db:"promo_id" validate:"required"`
+	DocumentURL string `json:"DocumentURL" db:"document_url" validate:"required"`
 	StatusID    string `json:"StatusID" db:"status_id"`
 }
 

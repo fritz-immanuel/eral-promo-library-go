@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
+	"github.com/fritz-immanuel/eral-promo-library-go/library/firebase"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/middleware"
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
@@ -40,8 +41,6 @@ func (h BusinessHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 	{
 		rs.GET("", middleware.Auth, base.FindAll)
 		rs.GET("/:id", middleware.Auth, base.Find)
-		rs.POST("", middleware.Auth, base.Create)
-		rs.PUT("", middleware.Auth, base.Update)
 	}
 }
 
@@ -56,6 +55,12 @@ func (h *BusinessHandler) FindAll(c *gin.Context) {
 		if err.Error != data.ErrNotFound {
 			response.Error(c, err.Message, http.StatusInternalServerError, *err)
 			return
+		}
+	}
+
+	for _, data := range datas {
+		if data.LogoImgURL != "" {
+			data.LogoImgURL, _ = firebase.GenerateSignedURL(data.LogoImgURL)
 		}
 	}
 
@@ -91,74 +96,11 @@ func (h *BusinessHandler) Find(c *gin.Context) {
 		return
 	}
 
+	if result.LogoImgURL != "" {
+		result.LogoImgURL, _ = firebase.GenerateSignedURL(result.LogoImgURL)
+	}
+
 	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data fetched!", Data: result}
-	h.Result = gin.H{
-		"result": dataresponse,
-	}
-
-	c.JSON(http.StatusOK, h.Result)
-}
-
-func (h *BusinessHandler) Create(c *gin.Context) {
-	var err *types.Error
-	var business models.Business
-	var dataBusiness *models.Business
-
-	business.Name = c.PostForm("Name")
-	business.Code = c.PostForm("Code")
-
-	// TODO: upload img
-
-	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		dataBusiness, err = h.BusinessUsecase.Create(c, business)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-	if errTransaction != nil {
-		errTransaction.Path = ".BusinessHandler->Create()" + errTransaction.Path
-		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
-		return
-	}
-
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data created!", Data: dataBusiness}
-	h.Result = gin.H{
-		"result": dataresponse,
-	}
-
-	c.JSON(http.StatusOK, h.Result)
-}
-
-func (h *BusinessHandler) Update(c *gin.Context) {
-	var err *types.Error
-	var business models.Business
-	var data *models.Business
-
-	id := c.Param("id")
-
-	business.Name = c.PostForm("Name")
-	business.Code = c.PostForm("Code")
-
-	// TODO: upload img
-
-	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
-		data, err = h.BusinessUsecase.Update(c, id, business)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if errTransaction != nil {
-		errTransaction.Path = ".BusinessHandler->Update()" + errTransaction.Path
-		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
-		return
-	}
-
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data created!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

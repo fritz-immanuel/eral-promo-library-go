@@ -130,6 +130,7 @@ func (u *PromoUsecase) Create(ctx *gin.Context, obj models.Promo) (*models.Promo
 		for _, v := range obj.PromoDocuments {
 			v.ID = uuid.New().String()
 			v.PromoID = data.ID
+			v.StatusID = "1"
 			_, err := u.promodocumentRepo.Create(ctx, v)
 			if err != nil {
 				err.Path = ".PromoUsecase->Create()" + err.Path
@@ -182,8 +183,6 @@ func (u *PromoUsecase) Update(ctx *gin.Context, id string, obj models.Promo) (*m
 	data.StartDate = obj.StartDate
 	data.EndDate = obj.EndDate
 	data.ImgURL = obj.ImgURL
-	data.CompanyID = obj.CompanyID
-	data.BusinessID = obj.BusinessID
 	data.TotalPromoBudget = obj.TotalPromoBudget
 	data.PrincipleSupport = obj.PrincipleSupport
 	data.InternalSupport = obj.InternalSupport
@@ -216,4 +215,62 @@ func (u *PromoUsecase) UpdateStatus(ctx *gin.Context, id string, newStatusID str
 	}
 
 	return result, nil
+}
+
+// DOCUMENTS
+func (u *PromoUsecase) CreateDocument(ctx *gin.Context, obj models.PromoDocument) (*models.PromoDocument, *types.Error) {
+	err := helpers.ValidateStruct(obj)
+	if err != nil {
+		err.Path = ".PromoUsecase->CreateDocument()" + err.Path
+		return nil, err
+	}
+
+	data := models.PromoDocument{
+		ID:          uuid.New().String(),
+		PromoID:     obj.PromoID,
+		DocumentURL: obj.DocumentURL,
+		StatusID:    models.DEFAULT_STATUS_CODE,
+	}
+
+	result, err := u.promodocumentRepo.Create(ctx, &data)
+	if err != nil {
+		err.Path = ".PromoUsecase->CreateDocument()" + err.Path
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (u *PromoUsecase) UpdateDocument(ctx *gin.Context, id string, obj models.PromoDocument) (*models.PromoDocument, *types.Error) {
+	err := helpers.ValidateStruct(obj)
+	if err != nil {
+		err.Path = ".PromoUsecase->UpdateDocument()" + err.Path
+		return nil, err
+	}
+
+	data, err := u.promodocumentRepo.Find(ctx, id)
+	if err != nil {
+		err.Path = ".PromoUsecase->UpdateDocument()" + err.Path
+		return nil, err
+	}
+
+	data.DocumentURL = obj.DocumentURL
+
+	result, err := u.promodocumentRepo.Update(ctx, data)
+	if err != nil {
+		err.Path = ".PromoUsecase->UpdateDocument()" + err.Path
+		return nil, err
+	}
+
+	return result, err
+}
+
+func (u *PromoUsecase) DeleteDocument(ctx *gin.Context, id string) *types.Error {
+	_, err := u.promodocumentRepo.UpdateStatus(ctx, id, models.STATUS_INACTIVE)
+	if err != nil {
+		err.Path = ".PromoUsecase->DeleteDocument()" + err.Path
+		return err
+	}
+
+	return nil
 }

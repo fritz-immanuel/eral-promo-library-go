@@ -72,7 +72,7 @@ func (h *EmployeeHandler) Find(c *gin.Context) {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditampilkan", Data: result}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Data fetched!", Data: result}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -91,8 +91,8 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 	if newPassword == "" {
 		err = &types.Error{
 			Path:    ".EmployeeHandler->UpdatePassword()",
-			Message: "Password baru tidak boleh kosong",
-			Type:    "mysql-error",
+			Message: "New Password cannot be empty",
+			Type:    "validation-error",
 		}
 		response.Error(c, err.Message, http.StatusUnprocessableEntity, *err)
 		return
@@ -101,8 +101,8 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 	if newPassword == oldPassword {
 		err = &types.Error{
 			Path:    ".EmployeeHandler->UpdatePassword()",
-			Message: "Password baru tidak boleh sama dengan password lama",
-			Type:    "mysql-error",
+			Message: "New Password cannot be the same as the Old Password",
+			Type:    "validation-error",
 		}
 		response.Error(c, err.Message, http.StatusUnprocessableEntity, *err)
 		return
@@ -111,8 +111,8 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 	if newPassword != c.PostForm("ConfirmNewPassword") {
 		err = &types.Error{
 			Path:    ".EmployeeHandler->UpdatePassword()",
-			Message: "Gagal mengkonfirmasi password baru",
-			Type:    "mysql-error",
+			Message: "New Password confirmation does not match",
+			Type:    "validation-error",
 		}
 		response.Error(c, err.Message, http.StatusUnprocessableEntity, *err)
 		return
@@ -137,7 +137,7 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 		err = &types.Error{
 			Path:    ".EmployeeHandler->UpdatePassword()",
 			Message: "Incorrect Previous Password",
-			Type:    "mysql-error",
+			Type:    "validation-error",
 		}
 		response.Error(c, err.Message, http.StatusUnprocessableEntity, *err)
 		return
@@ -160,7 +160,7 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Diperbarui", Data: dataEmployee}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee password updated!", Data: dataEmployee}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -196,7 +196,7 @@ func (h *EmployeeHandler) Login(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Login berhasil", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Login Successful", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

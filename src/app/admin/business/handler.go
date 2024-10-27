@@ -43,6 +43,8 @@ func (h BusinessHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 		rs.GET("/:id", middleware.Auth, base.Find)
 		rs.POST("", middleware.Auth, base.Create)
 		rs.PUT("", middleware.Auth, base.Update)
+
+		rs.PUT("/:id/status", middleware.Auth, base.UpdateStatus)
 	}
 }
 
@@ -228,6 +230,37 @@ func (h *BusinessHandler) Update(c *gin.Context) {
 	}
 
 	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Data updated!", Data: data}
+	h.Result = gin.H{
+		"result": dataresponse,
+	}
+
+	c.JSON(http.StatusOK, h.Result)
+}
+
+func (h *BusinessHandler) UpdateStatus(c *gin.Context) {
+	var err *types.Error
+	var data *models.Business
+
+	employeeID := c.Param("id")
+
+	newStatusID := c.PostForm("StatusID")
+
+	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
+		data, err = h.BusinessUsecase.UpdateStatus(c, employeeID, newStatusID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if errTransaction != nil {
+		errTransaction.Path = ".BusinessHandler->UpdateStatus()" + errTransaction.Path
+		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
+		return
+	}
+
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Business Status has been updated!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

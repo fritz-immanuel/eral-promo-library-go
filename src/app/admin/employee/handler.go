@@ -90,7 +90,7 @@ func (h *EmployeeHandler) FindAll(c *gin.Context) {
 		}
 	}
 
-	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditampilkan", TotalData: length, Page: page, Size: size, Data: datas}
+	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Data fetched!", TotalData: length, Page: page, Size: size, Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -110,7 +110,7 @@ func (h *EmployeeHandler) Find(c *gin.Context) {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditampilkan", Data: result}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Data fetched!", Data: result}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -157,7 +157,7 @@ func (h *EmployeeHandler) Create(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditambahkan", Data: dataEmployee}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Data created!", Data: dataEmployee}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -201,7 +201,7 @@ func (h *EmployeeHandler) Update(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditambahkan", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Data updated!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -220,8 +220,8 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 	if newPassword == "" {
 		err = &types.Error{
 			Path:    ".EmployeeHandler->UpdatePassword()",
-			Message: "Password baru tidak boleh kosong",
-			Type:    "mysql-error",
+			Message: "New Password cannot be empty",
+			Type:    "validation-error",
 		}
 		response.Error(c, err.Message, http.StatusUnprocessableEntity, *err)
 		return
@@ -230,8 +230,8 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 	if newPassword == oldPassword {
 		err = &types.Error{
 			Path:    ".EmployeeHandler->UpdatePassword()",
-			Message: "Password baru tidak boleh sama dengan password lama",
-			Type:    "mysql-error",
+			Message: "New Password cannot be the same as the Old Password",
+			Type:    "validation-error",
 		}
 		response.Error(c, err.Message, http.StatusUnprocessableEntity, *err)
 		return
@@ -240,8 +240,8 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 	if newPassword != c.PostForm("ConfirmNewPassword") {
 		err = &types.Error{
 			Path:    ".EmployeeHandler->UpdatePassword()",
-			Message: "Gagal mengkonfirmasi password baru",
-			Type:    "mysql-error",
+			Message: "New Password confirmation does not match",
+			Type:    "validation-error",
 		}
 		response.Error(c, err.Message, http.StatusUnprocessableEntity, *err)
 		return
@@ -289,7 +289,7 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Diperbarui", Data: dataEmployee}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Data updated!", Data: dataEmployee}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -319,7 +319,7 @@ func (h *EmployeeHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee berhasil direset password", Data: dataEmployee}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Password reset successful", Data: dataEmployee}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -332,7 +332,7 @@ func (h *EmployeeHandler) FindStatus(c *gin.Context) {
 	datas = append(datas, &models.Status{ID: models.STATUS_INACTIVE, Name: "Inactive"})
 	datas = append(datas, &models.Status{ID: models.STATUS_ACTIVE, Name: "Active"})
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Data Employee Berhasil Ditampilkan", Data: datas}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Status Data fetched!", Data: datas}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
@@ -362,7 +362,7 @@ func (h *EmployeeHandler) UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Status Employee Berhasil Diubah", Data: data}
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Status has been updated!", Data: data}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}
