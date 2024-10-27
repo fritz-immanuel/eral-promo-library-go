@@ -236,3 +236,68 @@ func (s EmployeeRepository) UpdateStatus(ctx *gin.Context, id string, statusID s
 
 	return &data, nil
 }
+
+func (s EmployeeRepository) FindAllForLogin(ctx *gin.Context, params models.FindAllEmployeeParams) ([]*models.EmployeeListForLogin, *types.Error) {
+	result := []*models.EmployeeListForLogin{}
+
+	var err error
+
+	where := `TRUE`
+
+	if params.FindAllParams.DataFinder != "" {
+		where = fmt.Sprintf("%s AND %s", where, params.FindAllParams.DataFinder)
+	}
+
+	if params.FindAllParams.StatusID != "" {
+		where = fmt.Sprintf("%s AND %s", where, params.FindAllParams.StatusID)
+	}
+
+	if params.Email != "" {
+		where += ` AND employees.email = :email`
+	}
+
+	if params.Username != "" {
+		where += ` AND employees.username = :username`
+	}
+
+	if params.Password != "" {
+		where += ` AND employees.password = :password`
+	}
+
+	if params.FindAllParams.SortBy != "" {
+		where = fmt.Sprintf("%s ORDER BY %s", where, params.FindAllParams.SortBy)
+	}
+
+	if params.FindAllParams.Page > 0 && params.FindAllParams.Size > 0 {
+		where = fmt.Sprintf(`%s LIMIT :limit OFFSET :offset`, where)
+	}
+
+	query := fmt.Sprintf(`
+  SELECT
+    employees.id, employees.name, employees.email, employees.username, employees.business_id,
+		business.company_id, employees.status_id
+  FROM employees
+	JOIN business ON business.id = employees.business_id
+  WHERE %s
+  `, where)
+
+	err = s.repository.SelectWithQuery(ctx, &result, query, map[string]interface{}{
+		"limit":     params.FindAllParams.Size,
+		"offset":    ((params.FindAllParams.Page - 1) * params.FindAllParams.Size),
+		"status_id": params.FindAllParams.StatusID,
+		"email":     params.Email,
+		"username":  params.Username,
+		"password":  params.Password,
+	})
+	if err != nil {
+		return nil, &types.Error{
+			Path:       ".EmployeeStorage->FindAllForLogin()",
+			Message:    err.Error(),
+			Error:      err,
+			StatusCode: http.StatusInternalServerError,
+			Type:       "mysql-error",
+		}
+	}
+
+	return result, nil
+}

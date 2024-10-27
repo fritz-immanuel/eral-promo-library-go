@@ -90,69 +90,69 @@ func init() {
 	}
 	filef := &embedded.EmbeddedFile{
 		Filename:    "202410251800_create_table_employees.up.sql",
-		FileModTime: time.Unix(1730025627, 0),
+		FileModTime: time.Unix(1730031865, 0),
 
-		Content: string("CREATE TABLE employees (\r\n  id VARCHAR(255) NOT NULL,\r\n  name VARCHAR(255) NOT NULL,\r\n  email VARCHAR(255) DEFAULT '',\r\n  username VARCHAR(255) NOT NULL,\r\n  password VARCHAR(255) NOT NULL,\r\n  employee_role_id VARCHAR(255) DEFAULT '',\r\n  \r\n  status_id VARCHAR(5) DEFAULT '1',\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n  PRIMARY KEY (id),\r\n  INDEX idx_username (username)\r\n);"),
+		Content: string("CREATE TABLE employees (\r\n  id VARCHAR(255) NOT NULL,\r\n  name VARCHAR(255) NOT NULL,\r\n  email VARCHAR(255) DEFAULT '',\r\n  username VARCHAR(255) NOT NULL,\r\n  password VARCHAR(255) NOT NULL,\r\n  business_id VARCHAR(255) NOT NULL,\r\n  employee_role_id VARCHAR(255) DEFAULT '',\r\n  \r\n  status_id VARCHAR(5) DEFAULT '1',\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n  PRIMARY KEY (id),\r\n  INDEX idx_username (username),\r\n  INDEX idx_business_id (business_id),\r\n  INDEX idx_employee_role_id (employee_role_id)\r\n);"),
 	}
 	fileg := &embedded.EmbeddedFile{
-		Filename:    "202410251802_create_table_employee_permissions.up.sql",
-		FileModTime: time.Unix(1729856223, 0),
-
-		Content: string("CREATE TABLE employee_permissions (\r\n  id VARCHAR(255) NOT NULL,\r\n  employee_id VARCHAR(255) DEFAULT '',\r\n  permission_id INT DEFAULT 0,\r\n\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n\r\n  PRIMARY KEY (id),\r\n  INDEX idx_employee_id (employee_id),\r\n  INDEX idx_permission_id (permission_id)\r\n);"),
-	}
-	fileh := &embedded.EmbeddedFile{
 		Filename:    "202410261700_create_table_promos.up.sql",
 		FileModTime: time.Unix(1730025125, 0),
 
 		Content: string("CREATE TABLE promos (\r\n  id VARCHAR(255) NOT NULL,\r\n  name VARCHAR(255) DEFAULT '',\r\n  code VARCHAR(255) DEFAULT '',\r\n  img_url LONGTEXT NOT NULL,\r\n  company_id VARCHAR(255) NOT NULL,\r\n  business_id VARCHAR(255) NOT NULL,\r\n  brand_id VARCHAR(255) NOT NULL,\r\n  total_promo_budget DECIMAL(25,2) DEFAULT 0.0,\r\n  principle_support DECIMAL(3,2) DEFAULT 0.0,\r\n  internal_support DECIMAL(3,2) DEFAULT 0.0,\r\n  approved_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  approved_by VARCHAR(255) DEFAULT '',\r\n\r\n  status_id VARCHAR(5) DEFAULT '1', \r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n\r\n  PRIMARY KEY (id),\r\n  INDEX idx_promo_type_id (promo_type_id),\r\n  INDEX idx_company_id (company_id),\r\n  INDEX idx_business_id (business_id),\r\n  INDEX idx_brand_id (brand_id),\r\n  INDEX idx_approved_by (approved_by),\r\n  INDEX idx_status_id (status_id)\r\n);"),
 	}
-	filei := &embedded.EmbeddedFile{
+	fileh := &embedded.EmbeddedFile{
 		Filename:    "202410261701_create_table_promo_documents.up.sql",
 		FileModTime: time.Unix(1729940157, 0),
 
 		Content: string("CREATE TABLE promo_documents (\r\n  id VARCHAR(255) NOT NULL,\r\n  promo_id VARCHAR(255) DEFAULT '',\r\n  document_url VARCHAR(255) DEFAULT '',\r\n\r\n  status_id VARCHAR(5) DEFAULT '1', \r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n\r\n  PRIMARY KEY (id),\r\n  INDEX idx_promo_id (promo_id),\r\n  INDEX idx_status_id (status_id)\r\n);"),
 	}
-	filej := &embedded.EmbeddedFile{
+	filei := &embedded.EmbeddedFile{
 		Filename:    "202410261702_create_table_promo_status.up.sql",
 		FileModTime: time.Unix(1729942247, 0),
 
 		Content: string("CREATE TABLE promo_status (\r\n  id VARCHAR(255) NOT NULL,\r\n  name VARCHAR(255) DEFAULT '',\r\n  PRIMARY KEY (id)\r\n);"),
 	}
-	filek := &embedded.EmbeddedFile{
+	filej := &embedded.EmbeddedFile{
 		Filename:    "202410261703_insert_promo_status_data.up.sql",
 		FileModTime: time.Unix(1729942323, 0),
 
 		Content: string("INSERT INTO\r\n  promo_status (id, name)\r\nVALUES\r\n  ('0', 'Inactive'),\r\n  ('1', 'Active'),\r\n  ('2', 'Submitted');"),
 	}
-	filel := &embedded.EmbeddedFile{
+	filek := &embedded.EmbeddedFile{
 		Filename:    "202410271600_create_table_companies.up.sql",
 		FileModTime: time.Unix(1730025441, 0),
 
 		Content: string("CREATE TABLE companies (\r\n  id VARCHAR(255) NOT NULL,\r\n  name VARCHAR(255) DEFAULT '',\r\n  code VARCHAR(255) DEFAULT '',\r\n  logo_img_url LONGTEXT NOT NULL,\r\n\r\n  status_id VARCHAR(5) DEFAULT \"1\",\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n  PRIMARY KEY (id),\r\n  INDEX idx_companies_status_id (status_id)\r\n);"),
 	}
-	filem := &embedded.EmbeddedFile{
+	filel := &embedded.EmbeddedFile{
 		Filename:    "202410271601_insert_companies_init_data.up.sql",
 		FileModTime: time.Unix(1730020559, 0),
 
 		Content: string("INSERT INTO\r\n  companies (id, name, code)\r\nVALUES\r\n  (UUID(), 'Erajaya Active Lifestyle', 'ERAL'); "),
 	}
-	filen := &embedded.EmbeddedFile{
+	filem := &embedded.EmbeddedFile{
 		Filename:    "202410271700_create_table_employee_roles.up.sql",
 		FileModTime: time.Unix(1730025490, 0),
 
 		Content: string("CREATE TABLE employee_roles (\r\n  id VARCHAR(255) NOT NULL,\r\n  name VARCHAR(255) DEFAULT '',\r\n  is_supervisor INT DEFAULT 0,\r\n\r\n  status_id VARCHAR(5) DEFAULT \"1\",\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n  PRIMARY KEY (id),\r\n  INDEX idx_status_id (status_id)\r\n);"),
 	}
-	fileo := &embedded.EmbeddedFile{
+	filen := &embedded.EmbeddedFile{
 		Filename:    "202410271701_create_table_employee_role_permissions.up.sql",
-		FileModTime: time.Unix(1730025561, 0),
+		FileModTime: time.Unix(1730031131, 0),
 
-		Content: string("CREATE TABLE employee_role_permissions (\r\n  id VARCHAR(255) NOT NULL,\r\n  employee_role_id VARCHAR(255) DEFAULT '',\r\n  permission_id INT DEFAULT 0,\r\n\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n  PRIMARY KEY (id),\r\n  INDEX idx_employee_id (employee_id)\r\n);"),
+		Content: string("CREATE TABLE employee_role_permissions (\r\n  id VARCHAR(255) NOT NULL,\r\n  employee_role_id VARCHAR(255) DEFAULT '',\r\n  permission_id INT DEFAULT 0,\r\n\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n  PRIMARY KEY (id),\r\n  INDEX idx_employee_role_id (employee_role_id)\r\n);"),
+	}
+	fileo := &embedded.EmbeddedFile{
+		Filename:    "202410271900_create_table_employe_brands.up.sql",
+		FileModTime: time.Unix(1730031145, 0),
+
+		Content: string("CREATE TABLE employee_brands (\r\n  id VARCHAR(255) NOT NULL,\r\n  employee_id VARCHAR(255) DEFAULT '',\r\n  brand_id VARCHAR(255) DEFAULT '',\r\n\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n  PRIMARY KEY (id),\r\n  INDEX idx_employee_id (employee_id)\r\n);"),
 	}
 
 	// define dirs
 	dir1 := &embedded.EmbeddedDir{
 		Filename:   "",
-		DirModTime: time.Unix(1730031033, 0),
+		DirModTime: time.Unix(1730032751, 0),
 		ChildFiles: []*embedded.EmbeddedFile{
 			file2, // "202410251400_create_table_status.up.sql"
 			file3, // "202410251401_insert_status_data.up.sql"
@@ -168,15 +168,15 @@ func init() {
 			filed, // "202410251411_insert_permission_data_for_users.up.sql"
 			filee, // "202410251412_insert_permission_data_for_business.up.sql"
 			filef, // "202410251800_create_table_employees.up.sql"
-			fileg, // "202410251802_create_table_employee_permissions.up.sql"
-			fileh, // "202410261700_create_table_promos.up.sql"
-			filei, // "202410261701_create_table_promo_documents.up.sql"
-			filej, // "202410261702_create_table_promo_status.up.sql"
-			filek, // "202410261703_insert_promo_status_data.up.sql"
-			filel, // "202410271600_create_table_companies.up.sql"
-			filem, // "202410271601_insert_companies_init_data.up.sql"
-			filen, // "202410271700_create_table_employee_roles.up.sql"
-			fileo, // "202410271701_create_table_employee_role_permissions.up.sql"
+			fileg, // "202410261700_create_table_promos.up.sql"
+			fileh, // "202410261701_create_table_promo_documents.up.sql"
+			filei, // "202410261702_create_table_promo_status.up.sql"
+			filej, // "202410261703_insert_promo_status_data.up.sql"
+			filek, // "202410271600_create_table_companies.up.sql"
+			filel, // "202410271601_insert_companies_init_data.up.sql"
+			filem, // "202410271700_create_table_employee_roles.up.sql"
+			filen, // "202410271701_create_table_employee_role_permissions.up.sql"
+			fileo, // "202410271900_create_table_employe_brands.up.sql"
 
 		},
 	}
@@ -187,7 +187,7 @@ func init() {
 	// register embeddedBox
 	embedded.RegisterEmbeddedBox(`./migrations`, &embedded.EmbeddedBox{
 		Name: `./migrations`,
-		Time: time.Unix(1730031033, 0),
+		Time: time.Unix(1730032751, 0),
 		Dirs: map[string]*embedded.EmbeddedDir{
 			"": dir1,
 		},
@@ -206,15 +206,15 @@ func init() {
 			"202410251411_insert_permission_data_for_users.up.sql":       filed,
 			"202410251412_insert_permission_data_for_business.up.sql":    filee,
 			"202410251800_create_table_employees.up.sql":                 filef,
-			"202410251802_create_table_employee_permissions.up.sql":      fileg,
-			"202410261700_create_table_promos.up.sql":                    fileh,
-			"202410261701_create_table_promo_documents.up.sql":           filei,
-			"202410261702_create_table_promo_status.up.sql":              filej,
-			"202410261703_insert_promo_status_data.up.sql":               filek,
-			"202410271600_create_table_companies.up.sql":                 filel,
-			"202410271601_insert_companies_init_data.up.sql":             filem,
-			"202410271700_create_table_employee_roles.up.sql":            filen,
-			"202410271701_create_table_employee_role_permissions.up.sql": fileo,
+			"202410261700_create_table_promos.up.sql":                    fileg,
+			"202410261701_create_table_promo_documents.up.sql":           fileh,
+			"202410261702_create_table_promo_status.up.sql":              filei,
+			"202410261703_insert_promo_status_data.up.sql":               filej,
+			"202410271600_create_table_companies.up.sql":                 filek,
+			"202410271601_insert_companies_init_data.up.sql":             filel,
+			"202410271700_create_table_employee_roles.up.sql":            filem,
+			"202410271701_create_table_employee_role_permissions.up.sql": filen,
+			"202410271900_create_table_employe_brands.up.sql":            fileo,
 		},
 	})
 }

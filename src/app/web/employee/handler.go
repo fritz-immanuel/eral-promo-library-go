@@ -22,6 +22,9 @@ import (
 
 	employeeRepository "github.com/fritz-immanuel/eral-promo-library-go/src/services/employee/repository"
 	employeeUsecase "github.com/fritz-immanuel/eral-promo-library-go/src/services/employee/usecase"
+
+	employeeroleRepository "github.com/fritz-immanuel/eral-promo-library-go/src/services/employeerole/repository"
+	employeeroleUsecase "github.com/fritz-immanuel/eral-promo-library-go/src/services/employeerole/usecase"
 )
 
 var ()
@@ -39,11 +42,22 @@ func (h EmployeeHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 		data.NewMySQLStorage(db, "status", models.Status{}, data.MysqlConfig{}),
 	)
 
-	employeepermissionRepo := employeeRepository.NewEmployeePermissionRepository(
-		data.NewMySQLStorage(db, "employee_permissions", models.EmployeePermission{}, data.MysqlConfig{}),
+	employeebrandRepo := employeeRepository.NewEmployeeBrandRepository(
+		data.NewMySQLStorage(db, "employee_brands", models.EmployeeBrand{}, data.MysqlConfig{}),
 	)
 
-	uEmployee := employeeUsecase.NewEmployeeUsecase(db, employeeRepo, employeepermissionRepo)
+	employeeroleRepo := employeeroleRepository.NewEmployeeRoleRepository(
+		data.NewMySQLStorage(db, "employee_roles", models.EmployeeRole{}, data.MysqlConfig{}),
+		data.NewMySQLStorage(db, "status", models.Status{}, data.MysqlConfig{}),
+	)
+
+	employeerolepermissionRepo := employeeroleRepository.NewEmployeeRolePermissionRepository(
+		data.NewMySQLStorage(db, "employee_role_permissions", models.EmployeeRolePermission{}, data.MysqlConfig{}),
+	)
+
+	uEmployeeRole := employeeroleUsecase.NewEmployeeRoleUsecase(db, employeeroleRepo, employeerolepermissionRepo)
+
+	uEmployee := employeeUsecase.NewEmployeeUsecase(db, employeeRepo, employeebrandRepo, uEmployeeRole)
 
 	base := &EmployeeHandler{EmployeeUsecase: uEmployee, dataManager: dataManager}
 

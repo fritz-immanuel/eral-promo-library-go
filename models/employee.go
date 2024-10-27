@@ -8,6 +8,7 @@ type EmployeeBulk struct {
 	Email          string `json:"Email" db:"email"`
 	Username       string `json:"Username" db:"username"`
 	Password       string `json:"Password" db:"password"`
+	BusinessID     string `json:"BusinessID" db:"business_id"`
 	EmployeeRoleID string `json:"EmployeeRoleID" db:"employee_role_id"`
 	StatusID       string `json:"StatusID" db:"status_id"`
 
@@ -20,10 +21,13 @@ type Employee struct {
 	Email          string `json:"Email" db:"email"`
 	Username       string `json:"Username" db:"username" validate:"required"`
 	Password       string `json:"Password" db:"password" validate:"required"`
+	BusinessID     string `json:"BusinessID" db:"business_id" validate:"required"`
 	EmployeeRoleID string `json:"EmployeeRoleID" db:"employee_role_id" validate:"required"`
 	StatusID       string `json:"StatusID" db:"status_id"`
 
 	Status Status `json:"Status"`
+
+	Brands []*EmployeeBrand `json:"Brands"`
 }
 
 type FindAllEmployeeParams struct {
@@ -33,10 +37,24 @@ type FindAllEmployeeParams struct {
 	Password      string
 }
 
+type EmployeeListForLogin struct {
+	ID             string `json:"ID" db:"id"`
+	Name           string `json:"Name" db:"name"`
+	Email          string `json:"Email" db:"email"`
+	Username       string `json:"Username" db:"username"`
+	BusinessID     string `json:"BusinessID" db:"business_id"`
+	EmployeeRoleID string `json:"EmployeeRoleID" db:"employee_role_id"`
+	StatusID       string `json:"StatusID" db:"status_id"`
+
+	CompanyID string `json:"CompanyID" db:"company_id"`
+}
+
 type EmployeeLogin struct {
 	ID       string `json:"ID"`
 	Name     string `json:"Name"`
+	Username string `json:"Username" validate:"required"`
 	Password string `json:"Password" validate:"required"`
 	Token    string `json:"Token"`
-	Username string `json:"Username" validate:"required"`
+
+	Permissions []*EmployeeRolePermission `json:"Permissions"`
 }

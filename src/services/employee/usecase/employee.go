@@ -12,6 +12,7 @@ import (
 	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 	"github.com/fritz-immanuel/eral-promo-library-go/src/services/employee"
+	"github.com/fritz-immanuel/eral-promo-library-go/src/services/employeerole"
 	"github.com/google/uuid"
 
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
@@ -22,20 +23,22 @@ import (
 )
 
 type EmployeeUsecase struct {
-	employeeRepo           employee.Repository
-	employeepermissionRepo employee.PermissionRepository
-	contextTimeout         time.Duration
-	db                     *sqlx.DB
+	employeeRepo        employee.Repository
+	employeebrandRepo   employee.BrandRepository
+	employeeroleUsecase employeerole.Usecase
+	contextTimeout      time.Duration
+	db                  *sqlx.DB
 }
 
-func NewEmployeeUsecase(db *sqlx.DB, employeeRepo employee.Repository, employeepermissionRepo employee.PermissionRepository) employee.Usecase {
+func NewEmployeeUsecase(db *sqlx.DB, employeeRepo employee.Repository, employeebrandRepo employee.BrandRepository, employeeroleUsecase employeerole.Usecase) employee.Usecase {
 	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
 
 	return &EmployeeUsecase{
-		employeeRepo:           employeeRepo,
-		employeepermissionRepo: employeepermissionRepo,
-		contextTimeout:         timeoutContext,
-		db:                     db,
+		employeeRepo:        employeeRepo,
+		employeebrandRepo:   employeebrandRepo,
+		employeeroleUsecase: employeeroleUsecase,
+		contextTimeout:      timeoutContext,
+		db:                  db,
 	}
 }
 
@@ -51,6 +54,12 @@ func (u *EmployeeUsecase) FindAll(ctx *gin.Context, params models.FindAllEmploye
 
 func (u *EmployeeUsecase) Find(ctx *gin.Context, id string) (*models.Employee, *types.Error) {
 	result, err := u.employeeRepo.Find(ctx, id)
+	if err != nil {
+		err.Path = ".EmployeeUsecase->Find()" + err.Path
+		return nil, err
+	}
+
+	result.Brands, err = u.employeebrandRepo.FindAll(ctx, models.FindAllEmployeeBrandParams{EmployeeID: id})
 	if err != nil {
 		err.Path = ".EmployeeUsecase->Find()" + err.Path
 		return nil, err
@@ -91,6 +100,16 @@ func (u *EmployeeUsecase) Create(ctx *gin.Context, obj models.Employee) (*models
 		return nil, err
 	}
 
+	// Brands
+	for _, v := range obj.Brands {
+		v.EmployeeID = data.ID
+		_, err := u.employeebrandRepo.Create(ctx, v)
+		if err != nil {
+			err.Path = ".EmployeeUsecase->Create()" + err.Path
+			return nil, err
+		}
+	}
+
 	return result, nil
 }
 
@@ -117,6 +136,22 @@ func (u *EmployeeUsecase) Update(ctx *gin.Context, id string, obj models.Employe
 	if err != nil {
 		err.Path = ".EmployeeUsecase->Update()" + err.Path
 		return nil, err
+	}
+
+	// Brands
+	err = u.employeebrandRepo.DeleteByEmployeeID(ctx, data.ID)
+	if err != nil {
+		err.Path = ".EmployeeUsecase->Update()" + err.Path
+		return nil, err
+	}
+
+	for _, v := range obj.Brands {
+		v.EmployeeID = data.ID
+		_, err := u.employeebrandRepo.Create(ctx, v)
+		if err != nil {
+			err.Path = ".EmployeeUsecase->Update()" + err.Path
+			return nil, err
+		}
 	}
 
 	return result, err
@@ -172,7 +207,7 @@ func (u *EmployeeUsecase) Login(ctx *gin.Context, creds models.EmployeeLogin) (*
 	employeeParams.Username = creds.Username
 	employeeParams.Password = creds.Password
 	employeeParams.FindAllParams.StatusID = `status_id = 1`
-	employees, err := u.FindAll(ctx, employeeParams)
+	employees, err := u.employeeRepo.FindAllForLogin(ctx, employeeParams)
 	if err != nil {
 		err.Path = ".EmployeeUsecase->Login()" + err.Path
 		return nil, err
@@ -189,9 +224,18 @@ func (u *EmployeeUsecase) Login(ctx *gin.Context, creds models.EmployeeLogin) (*
 
 	employee := employees[0]
 
-	credentials := library.Credential{ID: employee.ID, Username: employee.Username, Name: employee.Name, Type: "WebApp"}
+	credentials := library.CredentialWebApp{
+		ID:             employee.ID,
+		Name:           employee.Name,
+		Email:          employee.Email,
+		Username:       employee.Username,
+		CompanyID:      employee.CompanyID,
+		BusinessID:     employee.BusinessID,
+		EmployeeRoleID: employee.EmployeeRoleID,
+		Type:           "WebApp",
+	}
 
-	token, errorJwtSign := library.JwtSignString(credentials)
+	token, errorJwtSign := library.JwtSignWebAppString(credentials)
 	if errorJwtSign != nil {
 		return nil, &types.Error{
 			Error:      errorJwtSign,
@@ -201,6 +245,13 @@ func (u *EmployeeUsecase) Login(ctx *gin.Context, creds models.EmployeeLogin) (*
 		}
 	}
 
+	employeeRole, err := u.employeeroleUsecase.Find(ctx, employee.EmployeeRoleID)
+	if err != nil {
+		err.Path = ".EmployeeUsecase->Login()" + err.Path
+		return nil, err
+	}
+
+	creds.Permissions = employeeRole.Permission
 	creds.Name = employee.Name
 	creds.Token = token
 	creds.Password = ""

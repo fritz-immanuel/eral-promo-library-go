@@ -13,12 +13,27 @@ import (
 )
 
 type Credential struct {
-	ID          string `json:"ID"`
-	Name        string `json:"Name"`
-	Username    string `json:"Username"`
-	Email       string `json:"Email"`
-	PhoneNumber string `json:"PhoneNumber"`
-	Type        string `json:"Type"`
+	ID       string `json:"ID"`
+	Name     string `json:"Name"`
+	Username string `json:"Username"`
+	Email    string `json:"Email"`
+	Type     string `json:"Type"`
+
+	FsId         string `json:"fsid"`
+	ClientId     string `json:"clientid"`
+	ClientSecret string `json:"clientsecret"`
+	RefreshToken string `json:"refreshtoken"`
+}
+
+type CredentialWebApp struct {
+	ID             string `json:"ID"`
+	Name           string `json:"Name"`
+	Username       string `json:"Username"`
+	Email          string `json:"Email"`
+	CompanyID      string `json:"CompanyID"`
+	BusinessID     string `json:"BusinessID"`
+	EmployeeRoleID string `json:"EmployeeRoleID"`
+	Type           string `json:"Type"`
 
 	FsId         string `json:"fsid"`
 	ClientId     string `json:"clientid"`
@@ -49,7 +64,48 @@ func JwtSignString(c Credential) (string, error) {
 	claims["ID"] = c.ID
 	claims["Name"] = c.Name
 	claims["Email"] = c.Email
-	claims["PhoneNumber"] = c.PhoneNumber
+	claims["LoginTime"] = time.Now()
+	claims["Exp"] = time.Now().Add(time.Hour * 72)
+	claims["Type"] = c.Type
+
+	config, _ := configs.GetConfiguration()
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     config.RedisAddr,
+		Password: config.RedisPassword,
+		DB:       config.RedisDB,
+	})
+
+	token, err := sign.SignedString([]byte("secret"))
+	if err != nil {
+		return "", err
+	}
+
+	if errRedis := redisClient.Set(
+		token,
+		fmt.Sprintf("{\"id\":%s}", c.ID),
+		time.Second*time.Duration(config.RedisTimeOut),
+	).Err(); errRedis != nil {
+		log.Printf(`
+		======================================================================
+		Error Storing Caching in "Auth":
+		Error: %v,
+		======================================================================
+		`, errRedis)
+		return "", errRedis
+	}
+	return token, nil
+}
+
+func JwtSignWebAppString(c CredentialWebApp) (string, error) {
+	sign := jwt.New(jwt.GetSigningMethod("HS256"))
+	claims := sign.Claims.(jwt.MapClaims)
+
+	claims["ID"] = c.ID
+	claims["Name"] = c.Name
+	claims["Email"] = c.Email
+	claims["BusinessID"] = c.BusinessID
+	claims["CompanyID"] = c.CompanyID
+	claims["EmployeeRoleID"] = c.EmployeeRoleID
 	claims["LoginTime"] = time.Now()
 	claims["Exp"] = time.Now().Add(time.Hour * 72)
 	claims["Type"] = c.Type

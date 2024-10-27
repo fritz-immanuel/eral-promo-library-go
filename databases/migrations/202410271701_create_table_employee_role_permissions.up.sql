@@ -8,5 +8,5 @@ CREATE TABLE employee_role_permissions (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_by VARCHAR(255) DEFAULT '',
   PRIMARY KEY (id),
-  INDEX idx_employee_id (employee_id)
+  INDEX idx_employee_role_id (employee_role_id)
 );

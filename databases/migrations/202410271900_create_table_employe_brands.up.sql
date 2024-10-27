@@ -1,14 +1,12 @@
-CREATE TABLE employee_permissions (
+CREATE TABLE employee_brands (
   id VARCHAR(255) NOT NULL,
   employee_id VARCHAR(255) DEFAULT '',
-  permission_id INT DEFAULT 0,
+  brand_id VARCHAR(255) DEFAULT '',
 
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   created_by VARCHAR(255) DEFAULT '',
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_by VARCHAR(255) DEFAULT '',
-
   PRIMARY KEY (id),
-  INDEX idx_employee_id (employee_id),
-  INDEX idx_permission_id (permission_id)
+  INDEX idx_employee_id (employee_id)
 );
