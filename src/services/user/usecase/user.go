@@ -57,6 +57,12 @@ func (u *UserUsecase) Find(ctx *gin.Context, id string) (*models.User, *types.Er
 		return nil, err
 	}
 
+	result.Permission, err = u.userpermissionRepo.FindAll(ctx, models.FindAllUserPermissionParams{UserID: id})
+	if err != nil {
+		err.Path = ".UserUsecase->Find()" + err.Path
+		return nil, err
+	}
+
 	return result, err
 }
 
@@ -94,7 +100,7 @@ func (u *UserUsecase) Create(ctx *gin.Context, obj models.User) (*models.User, *
 	// create permission
 	var permssions []string
 	for _, v := range obj.Permission {
-		permssions = append(permssions, fmt.Sprintf(`%d`, v.ID))
+		permssions = append(permssions, fmt.Sprintf(`%d`, v.PermissionID))
 	}
 
 	var permissionParams models.FindAllUserPermissionParams
@@ -141,7 +147,7 @@ func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.User) (*mod
 
 	var permssions []string
 	for _, v := range obj.Permission {
-		permssions = append(permssions, fmt.Sprintf(`%d`, v.ID))
+		permssions = append(permssions, fmt.Sprintf(`%d`, v.PermissionID))
 	}
 
 	var permissionParams models.FindAllUserPermissionParams

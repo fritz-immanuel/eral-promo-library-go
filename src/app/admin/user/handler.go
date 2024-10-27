@@ -9,6 +9,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
+	"github.com/fritz-immanuel/eral-promo-library-go/library"
 	"github.com/fritz-immanuel/eral-promo-library-go/middleware"
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
 	"github.com/gin-gonic/gin"
@@ -103,7 +104,12 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 }
 
 func (h *UserHandler) Find(c *gin.Context) {
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".EmployeeRoleHandler->Find()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	result, err := h.UserUsecase.Find(c, id)
 	if err != nil {
@@ -132,7 +138,12 @@ func (h *UserHandler) Create(c *gin.Context) {
 	io.WriteString(hash, c.PostForm("Password"))
 
 	user.Name = c.PostForm("Name")
-	user.Email = c.PostForm("Email")
+	user.Email, err = library.IsEmailValid(c.PostForm("Email"))
+	if err != nil {
+		err.Path = ".UserHandler->Create()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 	user.Username = c.PostForm("Username")
 	user.Password = fmt.Sprintf("%x", hash.Sum(nil))
 
@@ -175,10 +186,20 @@ func (h *UserHandler) Update(c *gin.Context) {
 	var user models.User
 	var data *models.User
 
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".EmployeeRoleHandler->Update()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	user.Name = c.PostForm("Name")
-	user.Email = c.PostForm("Email")
+	user.Email, err = library.IsEmailValid(c.PostForm("Email"))
+	if err != nil {
+		err.Path = ".UserHandler->Update()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 	user.Username = c.PostForm("Username")
 
 	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &user.Permission)
@@ -218,7 +239,13 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 	var err *types.Error
 	var dataUser *models.User
 
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".EmployeeRoleHandler->UpdatePassword()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
 	var oldPassword = c.PostForm("OldPassword")
 	var newPassword = c.PostForm("NewPassword")
 
@@ -306,7 +333,12 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 	var err *types.Error
 	var dataUser *models.User
 
-	id := c.Param("id")
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".EmployeeRoleHandler->ResetPassword()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
 		dataUser, err = h.UserUsecase.UpdatePassword(c, id, "123456")
@@ -348,7 +380,12 @@ func (h *UserHandler) UpdateStatus(c *gin.Context) {
 	var err *types.Error
 	var data *models.User
 
-	userID := c.Param("id")
+	userID, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".EmployeeRoleHandler->UpdateStatus()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 
 	newStatusID := c.PostForm("StatusID")
 

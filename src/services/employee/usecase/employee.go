@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library"
@@ -83,23 +82,10 @@ func (u *EmployeeUsecase) Create(ctx *gin.Context, obj models.Employee) (*models
 	data.Email = obj.Email
 	data.Username = obj.Username
 	data.Password = obj.Password
+	data.EmployeeRoleID = obj.EmployeeRoleID
 	data.StatusID = models.DEFAULT_STATUS_CODE
 
 	result, err := u.employeeRepo.Create(ctx, &data)
-	if err != nil {
-		err.Path = ".EmployeeUsecase->Create()" + err.Path
-		return nil, err
-	}
-
-	// create permission
-	var permssions []string
-	for _, v := range obj.Permission {
-		permssions = append(permssions, fmt.Sprintf(`%d`, v.ID))
-	}
-
-	var permissionParams models.FindAllEmployeePermissionParams
-	permissionParams.PermissionIDString = strings.Join(permssions, ",")
-	err = u.employeepermissionRepo.CreateBunch(ctx, data.ID, permissionParams)
 	if err != nil {
 		err.Path = ".EmployeeUsecase->Create()" + err.Path
 		return nil, err
@@ -124,29 +110,10 @@ func (u *EmployeeUsecase) Update(ctx *gin.Context, id string, obj models.Employe
 	data.Name = obj.Name
 	data.Email = obj.Email
 	data.Username = obj.Username
+	data.EmployeeRoleID = obj.EmployeeRoleID
 	data.StatusID = obj.StatusID
 
 	result, err := u.employeeRepo.Update(ctx, data)
-	if err != nil {
-		err.Path = ".EmployeeUsecase->Update()" + err.Path
-		return nil, err
-	}
-
-	// update permission
-	err = u.employeepermissionRepo.DeleteByEmployeeID(ctx, id)
-	if err != nil {
-		err.Path = ".EmployeeUsecase->Update()" + err.Path
-		return nil, err
-	}
-
-	var permssions []string
-	for _, v := range obj.Permission {
-		permssions = append(permssions, fmt.Sprintf(`%d`, v.ID))
-	}
-
-	var permissionParams models.FindAllEmployeePermissionParams
-	permissionParams.PermissionIDString = strings.Join(permssions, ",")
-	err = u.employeepermissionRepo.CreateBunch(ctx, data.ID, permissionParams)
 	if err != nil {
 		err.Path = ".EmployeeUsecase->Update()" + err.Path
 		return nil, err
@@ -222,7 +189,7 @@ func (u *EmployeeUsecase) Login(ctx *gin.Context, creds models.EmployeeLogin) (*
 
 	employee := employees[0]
 
-	credentials := library.Credential{ID: employee.ID, Username: employee.Username, Name: employee.Name, Type: "WebAdmin"}
+	credentials := library.Credential{ID: employee.ID, Username: employee.Username, Name: employee.Name, Type: "WebApp"}
 
 	token, errorJwtSign := library.JwtSignString(credentials)
 	if errorJwtSign != nil {

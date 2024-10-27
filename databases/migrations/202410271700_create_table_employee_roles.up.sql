@@ -1,8 +1,7 @@
-CREATE TABLE companies (
+CREATE TABLE employee_roles (
   id VARCHAR(255) NOT NULL,
   name VARCHAR(255) DEFAULT '',
-  code VARCHAR(255) DEFAULT '',
-  logo_img_url LONGTEXT NOT NULL,
+  is_supervisor INT DEFAULT 0,
 
   status_id VARCHAR(5) DEFAULT "1",
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -10,5 +9,5 @@ CREATE TABLE companies (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_by VARCHAR(255) DEFAULT '',
   PRIMARY KEY (id),
-  INDEX idx_companies_status_id (status_id)
+  INDEX idx_status_id (status_id)
 );

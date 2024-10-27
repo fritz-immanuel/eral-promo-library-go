@@ -1,16 +1,12 @@
-CREATE TABLE employees (
+CREATE TABLE employee_role_permissions (
   id VARCHAR(255) NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) DEFAULT '',
-  username VARCHAR(255) NOT NULL,
-  password VARCHAR(255) NOT NULL,
   employee_role_id VARCHAR(255) DEFAULT '',
-  
-  status_id VARCHAR(5) DEFAULT '1',
+  permission_id INT DEFAULT 0,
+
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   created_by VARCHAR(255) DEFAULT '',
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_by VARCHAR(255) DEFAULT '',
   PRIMARY KEY (id),
-  INDEX idx_username (username)
+  INDEX idx_employee_id (employee_id)
 );

@@ -23,7 +23,7 @@ type User struct {
 
 	Status Status `json:"Status"`
 
-	Permission []*Permission `json:"Permission"`
+	Permission []*UserPermission `json:"Permission"`
 }
 
 type FindAllUserParams struct {

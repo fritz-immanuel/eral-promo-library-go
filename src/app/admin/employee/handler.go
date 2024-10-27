@@ -2,13 +2,13 @@ package employee
 
 import (
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
 
+	"github.com/fritz-immanuel/eral-promo-library-go/library"
 	"github.com/fritz-immanuel/eral-promo-library-go/middleware"
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
 	"github.com/gin-gonic/gin"
@@ -132,17 +132,18 @@ func (h *EmployeeHandler) Create(c *gin.Context) {
 	io.WriteString(hash, c.PostForm("Password"))
 
 	employee.Name = c.PostForm("Name")
-	employee.Email = c.PostForm("Email")
+	employee.Email, err = library.IsEmailValid(c.PostForm("Email"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->Create()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 	employee.Username = c.PostForm("Username")
 	employee.Password = fmt.Sprintf("%x", hash.Sum(nil))
-
-	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &employee.Permission)
-	if errJson != nil {
-		response.Error(c, "Internal Server Error", http.StatusInternalServerError, types.Error{
-			Path:  ".EmployeeHandler->Create()",
-			Error: errJson,
-			Type:  "convert-error",
-		})
+	employee.EmployeeRoleID, err = helpers.ValidateUUID(c.PostForm("EmployeeRoleID"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->Create()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
 		return
 	}
 
@@ -183,16 +184,17 @@ func (h *EmployeeHandler) Update(c *gin.Context) {
 	}
 
 	employee.Name = c.PostForm("Name")
-	employee.Email = c.PostForm("Email")
+	employee.Email, err = library.IsEmailValid(c.PostForm("Email"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->Update()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 	employee.Username = c.PostForm("Username")
-
-	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &employee.Permission)
-	if errJson != nil {
-		response.Error(c, "Internal Server Error", http.StatusInternalServerError, types.Error{
-			Path:  ".EmployeeHandler->Update()",
-			Error: errJson,
-			Type:  "convert-error",
-		})
+	employee.EmployeeRoleID, err = helpers.ValidateUUID(c.PostForm("EmployeeRoleID"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->Update()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
 		return
 	}
 

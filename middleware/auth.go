@@ -130,9 +130,10 @@ func Auth(c *gin.Context) {
 	}
 	defer db.Close()
 
-	rows, err := db.Query(`SELECT
-  permission.http_method AS permission_http_method,
-  permission.route AS permission_route
+	rows, err := db.Query(`
+  SELECT
+    permission.http_method AS permission_http_method,
+    permission.route AS permission_route
   FROM user_permissions
   JOIN permission ON permission.id = user_permissions.permission_id
   WHERE package = 'WebsiteAdmin' AND user_permissions.user_id = ?
@@ -306,12 +307,14 @@ func AuthWebApp(c *gin.Context) {
 	}
 	defer db.Close()
 
-	rows, err := db.Query(`SELECT
-  permission.http_method AS permission_http_method,
-  permission.route AS permission_route
-  FROM user_permissions
-  JOIN permission ON permission.id = user_permissions.permission_id
-  WHERE package = 'WebsiteApp' AND user_permissions.user_id = ?
+	rows, err := db.Query(`
+  SELECT
+    permission.http_method AS permission_http_method,
+    permission.route AS permission_route
+  FROM employees
+  JOIN employee_role_permissions ON employee_role_permissions.employee_role_id = employees.employee_role_id
+  JOIN permissions ON permissions.id = employee_role_permissions.permission_id AND permissions.package = 'WebsiteApp'
+  WHERE employees.id = ?
   `, claimJWT["ID"])
 	if err != nil {
 		log.Fatal(err)
