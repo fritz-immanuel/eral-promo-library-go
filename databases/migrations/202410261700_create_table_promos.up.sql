@@ -9,8 +9,11 @@ CREATE TABLE promos (
   total_promo_budget DECIMAL(25,2) DEFAULT 0.0,
   principle_support DECIMAL(3,2) DEFAULT 0.0,
   internal_support DECIMAL(3,2) DEFAULT 0.0,
-  approved_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  approved_at DATETIME DEFAULT NULL,
   approved_by VARCHAR(255) DEFAULT '',
+  rejected_at DATETIME DEFAULT NULL,
+  rejected_by VARCHAR(255) DEFAULT '',
+  reject_reason VARCHAR(255) DEFAULT '',
 
   status_id VARCHAR(5) DEFAULT '1', 
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -19,10 +22,10 @@ CREATE TABLE promos (
   updated_by VARCHAR(255) DEFAULT '',
 
   PRIMARY KEY (id),
-  INDEX idx_promo_type_id (promo_type_id),
   INDEX idx_company_id (company_id),
   INDEX idx_business_id (business_id),
   INDEX idx_brand_id (brand_id),
   INDEX idx_approved_by (approved_by),
+  INDEX idx_rejected_by (rejected_by),
   INDEX idx_status_id (status_id)
 );

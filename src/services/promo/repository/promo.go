@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/fritz-immanuel/eral-promo-library-go/library/appcontext"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/data"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
@@ -60,6 +61,15 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 		}
 	}
 
+	if params.ApprovalStatus != 0 {
+		switch params.ApprovalStatus {
+		case -1:
+			where += ` AND promos.rejected_by != ""`
+		case 1:
+			where += ` AND promos.approved_by != ""`
+		}
+	}
+
 	if params.FindAllParams.SortBy != "" {
 		where = fmt.Sprintf("%s ORDER BY %s", where, params.FindAllParams.SortBy)
 	}
@@ -72,7 +82,7 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
   SELECT
     promos.id, promos.name, promos.code, promos.img_url, promos.start_date, promos.end_date, promos.company_id,
 		promos.business_id, promos.brand_id, promos.total_promo_budget, promos.principle_support, promos.internal_support,
-    promos.description, promos.approved_at, promos.approved_by,
+    promos.description, promos.approved_at, promos.approved_by, promos.rejected_at, promos.rejected_by, promos.reject_reason,
     promos.status_id, promo_status.name AS status_name
   FROM promos
   JOIN promo_status ON promos.status_id = promo_status.id
@@ -113,6 +123,9 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 				Description:      v.Description,
 				ApprovedAt:       v.ApprovedAt,
 				ApprovedBy:       v.ApprovedBy,
+				RejectedAt:       v.RejectedAt,
+				RejectedBy:       v.RejectedBy,
+				RejectReason:     v.RejectReason,
 				StatusID:         v.StatusID,
 				Status: models.Status{
 					ID:   v.StatusID,
@@ -135,7 +148,7 @@ func (s PromoRepository) Find(ctx *gin.Context, id string) (*models.Promo, *type
   SELECT
     promos.id, promos.name, promos.code, promos.img_url, promos.start_date, promos.end_date, promos.company_id,
 		promos.business_id, promos.brand_id, promos.total_promo_budget, promos.principle_support, promos.internal_support,
-    promos.description, promos.approved_at, promos.approved_by,
+    promos.description, promos.approved_at, promos.approved_by, promos.rejected_at, promos.rejected_by, promos.reject_reason,
     promos.status_id, promo_status.name AS status_name
   FROM promos
   JOIN promo_status ON promos.status_id = promo_status.id
@@ -172,6 +185,9 @@ func (s PromoRepository) Find(ctx *gin.Context, id string) (*models.Promo, *type
 			Description:      v.Description,
 			ApprovedAt:       v.ApprovedAt,
 			ApprovedBy:       v.ApprovedBy,
+			RejectedAt:       v.RejectedAt,
+			RejectedBy:       v.RejectedBy,
+			RejectReason:     v.RejectReason,
 			StatusID:         v.StatusID,
 			Status: models.Status{
 				ID:   v.StatusID,
@@ -282,6 +298,62 @@ func (s PromoRepository) UpdateStatus(ctx *gin.Context, id string, statusID stri
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".PromoStorage->UpdateStatus()",
+			Message:    err.Error(),
+			Error:      err,
+			StatusCode: http.StatusInternalServerError,
+			Type:       "mysql-error",
+		}
+	}
+
+	return &data, nil
+}
+
+func (s PromoRepository) ApprovePromo(ctx *gin.Context, id string) (*models.Promo, *types.Error) {
+	args := make(map[string]interface{})
+	err := s.repository.ExecQuery(ctx, fmt.Sprintf(`UPDATE promos SET approved_at = NOW(), approved_by = "%s", rejected_at = NULL, rejected_by = "", reject_reason = "" WHERE id = "%s"`, *appcontext.UserID(ctx), id), args)
+	if err != nil {
+		return nil, &types.Error{
+			Path:       ".PromoStorage->ApprovePromo()",
+			Message:    err.Error(),
+			Error:      err,
+			StatusCode: http.StatusInternalServerError,
+			Type:       "mysql-error",
+		}
+	}
+
+	data := models.Promo{}
+	err = s.repository.FindByID(ctx, &data, id)
+	if err != nil {
+		return nil, &types.Error{
+			Path:       ".PromoStorage->ApprovePromo()",
+			Message:    err.Error(),
+			Error:      err,
+			StatusCode: http.StatusInternalServerError,
+			Type:       "mysql-error",
+		}
+	}
+
+	return &data, nil
+}
+
+func (s PromoRepository) RejectPromo(ctx *gin.Context, id string, rejectReason string) (*models.Promo, *types.Error) {
+	args := make(map[string]interface{})
+	err := s.repository.ExecQuery(ctx, fmt.Sprintf(`UPDATE promos SET approved_at = NULL, approved_by = "", rejected_at = NOW(), rejected_by = "%s", reject_reason = "%s" WHERE id = "%s"`, *appcontext.UserID(ctx), rejectReason, id), args)
+	if err != nil {
+		return nil, &types.Error{
+			Path:       ".PromoStorage->RejectPromo()",
+			Message:    err.Error(),
+			Error:      err,
+			StatusCode: http.StatusInternalServerError,
+			Type:       "mysql-error",
+		}
+	}
+
+	data := models.Promo{}
+	err = s.repository.FindByID(ctx, &data, id)
+	if err != nil {
+		return nil, &types.Error{
+			Path:       ".PromoStorage->RejectPromo()",
 			Message:    err.Error(),
 			Error:      err,
 			StatusCode: http.StatusInternalServerError,

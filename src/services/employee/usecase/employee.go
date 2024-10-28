@@ -232,6 +232,7 @@ func (u *EmployeeUsecase) Login(ctx *gin.Context, creds models.EmployeeLogin) (*
 		CompanyID:      employee.CompanyID,
 		BusinessID:     employee.BusinessID,
 		EmployeeRoleID: employee.EmployeeRoleID,
+		IsSupervisor:   employee.IsSupervisor,
 		Type:           "WebApp",
 	}
 

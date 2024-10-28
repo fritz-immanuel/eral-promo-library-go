@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/fritz-immanuel/eral-promo-library-go/library/data"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 	"github.com/fritz-immanuel/eral-promo-library-go/src/services/promo"
+	"github.com/fritz-immanuel/eral-promo-library-go/src/services/useraction"
 	"github.com/google/uuid"
 
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
@@ -15,21 +17,28 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/jmoiron/sqlx"
+
+	useractionRepo "github.com/fritz-immanuel/eral-promo-library-go/src/services/useraction/repository"
 )
 
 type PromoUsecase struct {
 	promoRepo         promo.Repository
 	promodocumentRepo promo.DocumentRepository
+	useractionRepo    useraction.Repository
 	contextTimeout    time.Duration
 	db                *sqlx.DB
 }
 
 func NewPromoUsecase(db *sqlx.DB, promoRepo promo.Repository, promodocumentRepo promo.DocumentRepository) promo.Usecase {
 	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
+	useractionRepo := useractionRepo.NewUserActionRepository(
+		data.NewMySQLStorage(db, "user_actions", models.UserAction{}, data.MysqlConfig{}),
+	)
 
 	return &PromoUsecase{
 		promoRepo:         promoRepo,
 		promodocumentRepo: promodocumentRepo,
+		useractionRepo:    useractionRepo,
 		contextTimeout:    timeoutContext,
 		db:                db,
 	}
@@ -204,6 +213,50 @@ func (u *PromoUsecase) UpdateStatus(ctx *gin.Context, id string, newStatusID str
 	return result, nil
 }
 
+// APPROVAL
+
+func (u *PromoUsecase) ApprovePromo(ctx *gin.Context, id string) (*models.Promo, *types.Error) {
+	result, err := u.promoRepo.ApprovePromo(ctx, id)
+	if err != nil {
+		err.Path = ".PromoUsecase->ApprovePromo()" + err.Path
+		return nil, err
+	}
+
+	userAction := models.UserAction{}
+	userAction.TableName = "promos"
+	userAction.Action = "Approve Promo"
+	userAction.RefID = id
+
+	err = u.useractionRepo.CreateManual(ctx, &userAction)
+	if err != nil {
+		err.Path = ".PromoUsecase->ApprovePromo()" + err.Path
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (u *PromoUsecase) RejectPromo(ctx *gin.Context, id string, rejectReason string) (*models.Promo, *types.Error) {
+	result, err := u.promoRepo.RejectPromo(ctx, id, rejectReason)
+	if err != nil {
+		err.Path = ".PromoUsecase->RejectPromo()" + err.Path
+		return nil, err
+	}
+
+	userAction := models.UserAction{}
+	userAction.TableName = "promos"
+	userAction.Action = "Reject Promo"
+	userAction.RefID = id
+
+	err = u.useractionRepo.CreateManual(ctx, &userAction)
+	if err != nil {
+		err.Path = ".PromoUsecase->ApprovePromo()" + err.Path
+		return nil, err
+	}
+
+	return result, nil
+}
+
 // DOCUMENTS
 
 func (u *PromoUsecase) FindDocument(ctx *gin.Context, id string) (*models.PromoDocument, *types.Error) {
@@ -282,4 +335,23 @@ func (u *PromoUsecase) DeleteDocument(ctx *gin.Context, id string) *types.Error 
 	}
 
 	return nil
+}
+
+// HISTORY
+
+func (u *PromoUsecase) FindUserActionHistory(ctx *gin.Context, id string, params models.FindAllActionHistory) ([]*models.UserAction, *types.Error) {
+	filterFindAllParams := models.FindAllActionHistory{}
+	filterFindAllParams = params
+	filterFindAllParams.TableName = "promos"
+	filterFindAllParams.UsingStatusTable = 1
+	filterFindAllParams.RefID = id
+	filterFindAllParams.FindAllParams.SortBy = "user_actions.created_at DESC"
+
+	resultAction, err := u.useractionRepo.FindAll(ctx, filterFindAllParams)
+	if err != nil {
+		err.Path = ".PromoUsecase->FindUserActionHistory()" + err.Path
+		return nil, err
+	}
+
+	return resultAction, err
 }

@@ -22,6 +22,9 @@ type PromoBulk struct {
 	Description      string     `json:"Description" db:"description"`
 	ApprovedAt       *time.Time `json:"ApprovedAt" db:"approved_at"`
 	ApprovedBy       string     `json:"ApprovedBy" db:"approved_by"`
+	RejectedAt       *time.Time `json:"RejectedAt" db:"rejected_at"`
+	RejectedBy       string     `json:"RejectedBy" db:"rejected_by"`
+	RejectReason     string     `json:"RejectReason" db:"reject_reason"`
 	StatusID         string     `json:"StatusID" db:"status_id"`
 
 	StatusName string `json:"StatusName" db:"status_name"`
@@ -43,6 +46,9 @@ type Promo struct {
 	Description      string     `json:"Description" db:"description"`
 	ApprovedAt       *time.Time `json:"ApprovedAt" db:"approved_at"`
 	ApprovedBy       string     `json:"ApprovedBy" db:"approved_by"`
+	RejectedAt       *time.Time `json:"RejectedAt" db:"rejected_at"`
+	RejectedBy       string     `json:"RejectedBy" db:"rejected_by"`
+	RejectReason     string     `json:"RejectReason" db:"reject_reason"`
 	StatusID         string     `json:"StatusID" db:"status_id"`
 
 	Status Status `json:"Status"`
@@ -51,12 +57,13 @@ type Promo struct {
 }
 
 type FindAllPromoParams struct {
-	FindAllParams types.FindAllParams
-	PromoTypeID   string
-	CompanyID     string
-	BusinessID    string
-	BrandID       string
-	Code          string
-	StartDate     *time.Time
-	EndDate       *time.Time
+	FindAllParams  types.FindAllParams
+	PromoTypeID    string
+	CompanyID      string
+	BusinessID     string
+	BrandID        string
+	Code           string
+	StartDate      *time.Time
+	EndDate        *time.Time
+	ApprovalStatus int
 }

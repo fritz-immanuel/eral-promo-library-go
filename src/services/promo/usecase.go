@@ -17,9 +17,16 @@ type Usecase interface {
 	FindStatus(context *gin.Context) ([]*models.Status, *types.Error)
 	UpdateStatus(*gin.Context, string, string) (*models.Promo, *types.Error)
 
+	// APPROVAL
+	ApprovePromo(*gin.Context, string) (*models.Promo, *types.Error)
+	RejectPromo(*gin.Context, string, string) (*models.Promo, *types.Error)
+
 	// DOCUMENT
 	FindDocument(context *gin.Context, id string) (*models.PromoDocument, *types.Error)
 	CreateDocument(*gin.Context, models.PromoDocument) (*models.PromoDocument, *types.Error)
 	UpdateDocument(*gin.Context, string, models.PromoDocument) (*models.PromoDocument, *types.Error)
 	DeleteDocument(*gin.Context, string) *types.Error
+
+	// HISTORY
+	FindUserActionHistory(*gin.Context, string, models.FindAllActionHistory) ([]*models.UserAction, *types.Error)
 }

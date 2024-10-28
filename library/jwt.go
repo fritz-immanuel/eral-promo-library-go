@@ -33,6 +33,7 @@ type CredentialWebApp struct {
 	CompanyID      string `json:"CompanyID"`
 	BusinessID     string `json:"BusinessID"`
 	EmployeeRoleID string `json:"EmployeeRoleID"`
+	IsSupervisor   int    `json:"IsSupervisor"`
 	Type           string `json:"Type"`
 
 	FsId         string `json:"fsid"`
@@ -106,6 +107,7 @@ func JwtSignWebAppString(c CredentialWebApp) (string, error) {
 	claims["BusinessID"] = c.BusinessID
 	claims["CompanyID"] = c.CompanyID
 	claims["EmployeeRoleID"] = c.EmployeeRoleID
+	claims["IsSupervisor"] = c.IsSupervisor
 	claims["LoginTime"] = time.Now()
 	claims["Exp"] = time.Now().Add(time.Hour * 72)
 	claims["Type"] = c.Type

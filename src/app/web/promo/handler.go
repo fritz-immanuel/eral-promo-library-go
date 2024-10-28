@@ -58,6 +58,10 @@ func (h PromoHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router
 		rs.POST("/:id/document", middleware.AuthWebApp, base.CreateDocument)
 		rs.PUT("/:id/document", middleware.AuthWebApp, base.UpdateDocument)
 		rs.DELETE("/:id/document/:documentID", middleware.AuthWebApp, base.DeleteDocument)
+
+		// Approval
+		rs.PUT("/:id/approve", middleware.AuthWebApp, base.ApprovePromo)
+		rs.PUT("/:id/reject", middleware.AuthWebApp, base.RejectPromo)
 	}
 
 	rss := v.Group("/statuses")
@@ -74,6 +78,7 @@ func (h *PromoHandler) FindAll(c *gin.Context) {
 	params.CompanyID = *appcontext.CompanyID(c)
 	params.BusinessID = *appcontext.BusinessID(c)
 	params.BrandID, _ = helpers.MultiValueUUIDCheck(c.Query("BrandID"))
+	params.ApprovalStatus, _ = strconv.Atoi(c.Query("ApprovalStatus"))
 
 	if c.Query("StartDate") != "" {
 		startDateTime, errConversion := time.Parse(library.DateStampFormat(), c.Query("StartDate"))
@@ -426,7 +431,7 @@ func (h *PromoHandler) UpdateStatus(c *gin.Context) {
 
 	id, err := helpers.ValidateUUID(c.Param("id"))
 	if err != nil {
-		err.Path = ".PromoHandler->Update()" + err.Path
+		err.Path = ".PromoHandler->UpdateStatus()" + err.Path
 		response.Error(c, err.Message, err.StatusCode, *err)
 		return
 	}
@@ -455,6 +460,104 @@ func (h *PromoHandler) UpdateStatus(c *gin.Context) {
 
 	c.JSON(http.StatusOK, h.Result)
 }
+
+// APPROVAL
+
+func (h *PromoHandler) ApprovePromo(c *gin.Context) {
+	var err *types.Error
+	var data *models.Promo
+
+	if appcontext.IsSupervisor(c) == 0 {
+		err = &types.Error{
+			Path:       ".PromoHandler->ApprovePromo()",
+			Message:    "You are not allowed to perform this action",
+			Error:      fmt.Errorf("You are not allowed to perform this action"),
+			StatusCode: http.StatusForbidden,
+			Type:       "validation-error",
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".PromoHandler->ApprovePromo()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
+		data, err = h.PromoUsecase.ApprovePromo(c, id)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if errTransaction != nil {
+		errTransaction.Path = ".PromoHandler->ApprovePromo()" + errTransaction.Path
+		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
+		return
+	}
+
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo approved!", Data: data}
+	h.Result = gin.H{
+		"result": dataresponse,
+	}
+
+	c.JSON(http.StatusOK, h.Result)
+}
+
+func (h *PromoHandler) RejectPromo(c *gin.Context) {
+	var err *types.Error
+	var data *models.Promo
+
+	if appcontext.IsSupervisor(c) == 0 {
+		err = &types.Error{
+			Path:       ".PromoHandler->RejectPromo()",
+			Message:    "You are not allowed to perform this action",
+			Error:      fmt.Errorf("You are not allowed to perform this action"),
+			StatusCode: http.StatusForbidden,
+			Type:       "validation-error",
+		}
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".PromoHandler->RejectPromo()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	rejectReason := c.PostForm("RejectReason")
+
+	errTransaction := h.dataManager.RunInTransaction(c, func(tctx *gin.Context) *types.Error {
+		data, err = h.PromoUsecase.RejectPromo(c, id, rejectReason)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if errTransaction != nil {
+		errTransaction.Path = ".PromoHandler->RejectPromo()" + errTransaction.Path
+		response.Error(c, errTransaction.Message, errTransaction.StatusCode, *errTransaction)
+		return
+	}
+
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo rejected!", Data: data}
+	h.Result = gin.H{
+		"result": dataresponse,
+	}
+
+	c.JSON(http.StatusOK, h.Result)
+}
+
+// DOCUMENT
 
 func (h *PromoHandler) CreateDocument(c *gin.Context) {
 	var err *types.Error
@@ -639,6 +742,46 @@ func (h *PromoHandler) DeleteDocument(c *gin.Context) {
 	}
 
 	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Promo Document Data deleted!", Data: nil}
+	h.Result = gin.H{
+		"result": dataresponse,
+	}
+
+	c.JSON(http.StatusOK, h.Result)
+}
+
+// HISTORY
+
+func (h *PromoHandler) FindUserActionHistory(c *gin.Context) {
+	var params models.FindAllActionHistory
+	page, size := helpers.FilterFindAll(c)
+	filterFindAllParams := helpers.FilterFindAllParam(c)
+	params.FindAllParams = filterFindAllParams
+
+	id, err := helpers.ValidateUUID(c.Param("id"))
+	if err != nil {
+		err.Path = ".PromoHandler->FindUserActionHistory()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	result, err := h.PromoUsecase.FindUserActionHistory(c, id, params)
+	if err != nil {
+		err.Path = ".PromoHandler->FindUserActionHistory()" + err.Path
+		response.Error(c, err.Message, http.StatusInternalServerError, *err)
+		return
+	}
+
+	params.FindAllParams.Page = -1
+	params.FindAllParams.Size = -1
+
+	leng, err := h.PromoUsecase.FindUserActionHistory(c, id, params)
+	if err != nil {
+		err.Path = ".PromoHandler->FindUserActionHistory()" + err.Path
+		response.Error(c, err.Message, http.StatusInternalServerError, *err)
+		return
+	}
+
+	dataresponse := types.ResultAll{Status: "Sukses", StatusCode: http.StatusOK, Message: "User Action Data fetched!", Data: result, Page: page, Size: size, TotalData: len(leng)}
 	h.Result = gin.H{
 		"result": dataresponse,
 	}

@@ -37,6 +37,9 @@ const (
 	// KeyBusinessID represents the current logged-in BusinessID
 	KeyBusinessID contextKey = "BusinessID"
 
+	// KeyIsSupervisor represents the current logged-in Supervisor Status
+	KeyIsSupervisor contextKey = "IsSupervisor"
+
 	// KeyLoginToken represents the current logged-in token
 	KeyLoginToken contextKey = "LoginToken"
 
@@ -217,6 +220,16 @@ func BusinessID(ctx *gin.Context) *string {
 		}
 	}
 	return nil
+}
+
+func IsSupervisor(ctx *gin.Context) int {
+	isSupervisor := ctx.Value(fmt.Sprintf("%s", KeyIsSupervisor))
+	if isSupervisor != nil {
+		v := int(isSupervisor.(float64))
+		return v
+	}
+
+	return 0
 }
 
 // VersionCode gets current version code of request

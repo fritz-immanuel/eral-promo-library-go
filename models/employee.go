@@ -46,7 +46,8 @@ type EmployeeListForLogin struct {
 	EmployeeRoleID string `json:"EmployeeRoleID" db:"employee_role_id"`
 	StatusID       string `json:"StatusID" db:"status_id"`
 
-	CompanyID string `json:"CompanyID" db:"company_id"`
+	CompanyID    string `json:"CompanyID" db:"company_id"`
+	IsSupervisor int    `json:"IsSupervisor" db:"is_supervisor"`
 }
 
 type EmployeeLogin struct {

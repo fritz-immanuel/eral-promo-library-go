@@ -15,6 +15,10 @@ type Repository interface {
 
 	FindStatus(*gin.Context) ([]*models.Status, *types.Error)
 	UpdateStatus(*gin.Context, string, string) (*models.Promo, *types.Error)
+
+	// APPROVAL
+	ApprovePromo(*gin.Context, string) (*models.Promo, *types.Error)
+	RejectPromo(*gin.Context, string, string) (*models.Promo, *types.Error)
 }
 
 type DocumentRepository interface {
