@@ -73,6 +73,7 @@ func (h *PromoHandler) FindAll(c *gin.Context) {
 	params.FindAllParams = filterFindAllParams
 	params.CompanyID = *appcontext.CompanyID(c)
 	params.BusinessID = *appcontext.BusinessID(c)
+	params.BrandID, _ = helpers.MultiValueUUIDCheck(c.Query("BrandID"))
 
 	if c.Query("StartDate") != "" {
 		startDateTime, errConversion := time.Parse(library.DateStampFormat(), c.Query("StartDate"))
@@ -106,7 +107,9 @@ func (h *PromoHandler) FindAll(c *gin.Context) {
 		params.EndDate = &endDateTime
 	}
 
-	params.FindAllParams.SortBy = "promos.name ASC"
+	if c.Query("SortBy") != "" || c.Query("SortName") != "" {
+		params.FindAllParams.SortBy = "promos.name ASC"
+	}
 	datas, err := h.PromoUsecase.FindAll(c, params)
 	if err != nil {
 		if err.Error != data.ErrNotFound {

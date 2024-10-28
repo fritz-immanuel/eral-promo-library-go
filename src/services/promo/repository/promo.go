@@ -3,8 +3,10 @@ package repository
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library/data"
+	"github.com/fritz-immanuel/eral-promo-library-go/library/helpers"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
 	"github.com/gin-gonic/gin"
@@ -44,6 +46,20 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 		where += ` AND promos.business_id = :business_id`
 	}
 
+	if params.BrandID != "" {
+		bID, err := helpers.MultiValueUUIDCheck(params.BrandID) // make sure its all UUID
+		if err == nil {
+			explodeBrand := strings.Split(bID, ",")
+			for idx, b := range explodeBrand {
+				if b != "-1" && b != "" && b != "0" {
+					explodeBrand[idx] = fmt.Sprintf(`"%s"`, b)
+				}
+			}
+			JoinStringBrand := strings.Join(explodeBrand, ",")
+			where += ` AND promos.brand_id = (` + JoinStringBrand + `)`
+		}
+	}
+
 	if params.FindAllParams.SortBy != "" {
 		where = fmt.Sprintf("%s ORDER BY %s", where, params.FindAllParams.SortBy)
 	}
@@ -55,7 +71,7 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 	query := fmt.Sprintf(`
   SELECT
     promos.id, promos.name, promos.code, promos.img_url, promos.start_date, promos.end_date, promos.company_id,
-		promos.business_id, promos.total_promo_budget, promos.principle_support, promos.internal_support,
+		promos.business_id, promos.brand_id, promos.total_promo_budget, promos.principle_support, promos.internal_support,
     promos.description, promos.approved_at, promos.approved_by,
     promos.status_id, promo_status.name AS status_name
   FROM promos
@@ -64,9 +80,9 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
   `, where)
 
 	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
-		"limit":  params.FindAllParams.Size,
-		"offset": ((params.FindAllParams.Page - 1) * params.FindAllParams.Size),
-		"company_id": params.CompanyID,
+		"limit":       params.FindAllParams.Size,
+		"offset":      ((params.FindAllParams.Page - 1) * params.FindAllParams.Size),
+		"company_id":  params.CompanyID,
 		"business_id": params.BusinessID,
 	})
 	if err != nil {
@@ -90,6 +106,7 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 				ImgURL:           v.ImgURL,
 				CompanyID:        v.CompanyID,
 				BusinessID:       v.BusinessID,
+				BrandID:          v.BrandID,
 				TotalPromoBudget: v.TotalPromoBudget,
 				PrincipleSupport: v.PrincipleSupport,
 				InternalSupport:  v.InternalSupport,
@@ -117,7 +134,7 @@ func (s PromoRepository) Find(ctx *gin.Context, id string) (*models.Promo, *type
 	query := `
   SELECT
     promos.id, promos.name, promos.code, promos.img_url, promos.start_date, promos.end_date, promos.company_id,
-		promos.business_id, promos.total_promo_budget, promos.principle_support, promos.internal_support,
+		promos.business_id, promos.brand_id, promos.total_promo_budget, promos.principle_support, promos.internal_support,
     promos.description, promos.approved_at, promos.approved_by,
     promos.status_id, promo_status.name AS status_name
   FROM promos
@@ -148,6 +165,7 @@ func (s PromoRepository) Find(ctx *gin.Context, id string) (*models.Promo, *type
 			ImgURL:           v.ImgURL,
 			CompanyID:        v.CompanyID,
 			BusinessID:       v.BusinessID,
+			BrandID:          v.BrandID,
 			TotalPromoBudget: v.TotalPromoBudget,
 			PrincipleSupport: v.PrincipleSupport,
 			InternalSupport:  v.InternalSupport,

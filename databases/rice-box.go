@@ -148,11 +148,17 @@ func init() {
 
 		Content: string("CREATE TABLE employee_brands (\r\n  id VARCHAR(255) NOT NULL,\r\n  employee_id VARCHAR(255) DEFAULT '',\r\n  brand_id VARCHAR(255) DEFAULT '',\r\n\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n  PRIMARY KEY (id),\r\n  INDEX idx_employee_id (employee_id)\r\n);"),
 	}
+	filep := &embedded.EmbeddedFile{
+		Filename:    "202410281700_create_table_brands.up.sql",
+		FileModTime: time.Unix(1730110106, 0),
+
+		Content: string("CREATE TABLE brands (\r\n  id VARCHAR(255) NOT NULL,\r\n  name VARCHAR(255) DEFAULT '',\r\n  code VARCHAR(255) DEFAULT '',\r\n  logo_img_url LONGTEXT NOT NULL,\r\n  business_id VARCHAR(255) NOT NULL,\r\n\r\n  status_id VARCHAR(5) DEFAULT \"1\",\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n  PRIMARY KEY (id),\r\n  INDEX idx_brand_business_id (business_id),\r\n  INDEX idx_brand_status_id (status_id)\r\n);"),
+	}
 
 	// define dirs
 	dir1 := &embedded.EmbeddedDir{
 		Filename:   "",
-		DirModTime: time.Unix(1730032751, 0),
+		DirModTime: time.Unix(1730110078, 0),
 		ChildFiles: []*embedded.EmbeddedFile{
 			file2, // "202410251400_create_table_status.up.sql"
 			file3, // "202410251401_insert_status_data.up.sql"
@@ -177,6 +183,7 @@ func init() {
 			filem, // "202410271700_create_table_employee_roles.up.sql"
 			filen, // "202410271701_create_table_employee_role_permissions.up.sql"
 			fileo, // "202410271900_create_table_employe_brands.up.sql"
+			filep, // "202410281700_create_table_brands.up.sql"
 
 		},
 	}
@@ -187,7 +194,7 @@ func init() {
 	// register embeddedBox
 	embedded.RegisterEmbeddedBox(`./migrations`, &embedded.EmbeddedBox{
 		Name: `./migrations`,
-		Time: time.Unix(1730032751, 0),
+		Time: time.Unix(1730110078, 0),
 		Dirs: map[string]*embedded.EmbeddedDir{
 			"": dir1,
 		},
@@ -215,6 +222,7 @@ func init() {
 			"202410271700_create_table_employee_roles.up.sql":            filem,
 			"202410271701_create_table_employee_role_permissions.up.sql": filen,
 			"202410271900_create_table_employe_brands.up.sql":            fileo,
+			"202410281700_create_table_brands.up.sql":                    filep,
 		},
 	})
 }
