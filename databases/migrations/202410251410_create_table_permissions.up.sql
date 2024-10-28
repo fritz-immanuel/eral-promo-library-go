@@ -1,5 +1,5 @@
 CREATE TABLE permissions (
-  id VARCHAR(255) NOT NULL,
+  id INT AUTO_INCREMENT,
   package VARCHAR(255) DEFAULT '',
   module_name VARCHAR(255) DEFAULT '',
   action_name VARCHAR(255) DEFAULT '',
@@ -17,5 +17,6 @@ CREATE TABLE permissions (
 
   PRIMARY KEY (id),
   INDEX idx_package (package),
-  INDEX idx_module_name (module_name)
+  INDEX idx_module_name (module_name),
+  INDEX idx_action_name (action_name)
 );

@@ -56,7 +56,7 @@ func (h PromoHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router
 		rs.PUT("/:id/status", middleware.AuthWebApp, base.UpdateStatus)
 
 		rs.POST("/:id/document", middleware.AuthWebApp, base.CreateDocument)
-		rs.PUT("/:id/document", middleware.AuthWebApp, base.UpdateDocument)
+		rs.PUT("/:id/document/:documentID", middleware.AuthWebApp, base.UpdateDocument)
 		rs.DELETE("/:id/document/:documentID", middleware.AuthWebApp, base.DeleteDocument)
 
 		// Approval
