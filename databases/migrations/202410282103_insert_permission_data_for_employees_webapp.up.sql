@@ -1,5 +1,5 @@
 INSERT INTO
-  `permission`(
+  `permissions`(
     package,
     module_name,
     action_name,
