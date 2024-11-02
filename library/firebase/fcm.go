@@ -152,6 +152,7 @@ func GenerateSignedURL(fileName string) (string, *types.Error) {
 		Scheme:  storage.SigningSchemeV4,
 		Method:  "GET",
 		Expires: time.Now().Add(15 * time.Minute),
+		
 	}
 
 	url, err := client.Bucket(config.FirebaseStorageBucketURL).SignedURL(fileName, opts)

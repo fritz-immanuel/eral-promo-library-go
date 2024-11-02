@@ -1,6 +1,7 @@
 package business
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
@@ -69,7 +70,10 @@ func (h *BusinessHandler) FindAll(c *gin.Context) {
 
 	for _, data := range datas {
 		if data.LogoImgURL != "" {
-			data.LogoImgURL, _ = firebase.GenerateSignedURL(data.LogoImgURL)
+			data.LogoImgURL, err = firebase.GenerateSignedURL(data.LogoImgURL)
+			if err != nil {
+				fmt.Println(err.Error)
+			}
 		}
 	}
 

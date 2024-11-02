@@ -3,6 +3,7 @@ package appcontext
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,6 +40,8 @@ const (
 
 	// KeyIsSupervisor represents the current logged-in Supervisor Status
 	KeyIsSupervisor contextKey = "IsSupervisor"
+
+	KeyTokenExpiryTime contextKey = "Exp"
 
 	// KeyLoginToken represents the current logged-in token
 	KeyLoginToken contextKey = "LoginToken"
@@ -230,6 +233,23 @@ func IsSupervisor(ctx *gin.Context) int {
 	}
 
 	return 0
+}
+
+func TokenExpiryTime(ctx *gin.Context) *time.Time {
+	tokenExpiryTime := ctx.Value(fmt.Sprintf("%v", KeyTokenExpiryTime))
+	if tokenExpiryTime != nil {
+		if reflect.ValueOf(tokenExpiryTime).Kind().String() == "string" {
+			v := tokenExpiryTime.(string)
+			parsed, _ := time.Parse("2006-01-02T15:04:05.999999-07:00", v)
+			return &parsed
+		} else {
+			v := fmt.Sprintf("%v", tokenExpiryTime)
+			parsed, _ := time.Parse("2006-01-02T15:04:05.999999-07:00", v)
+			return &parsed
+		}
+	}
+
+	return nil
 }
 
 // VersionCode gets current version code of request

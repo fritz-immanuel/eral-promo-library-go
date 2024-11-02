@@ -99,15 +99,17 @@ func (s EmployeeRoleRepository) Find(ctx *gin.Context, id string) (*models.Emplo
 	result := models.EmployeeRole{}
 	bulks := []*models.EmployeeRoleBulk{}
 
-	query := fmt.Sprintf(`
+	query := `
   SELECT
     employee_roles.id, employee_roles.name, employee_roles.is_supervisor,
     employee_roles.status_id, status.name AS status_name
   FROM employee_roles
   JOIN status ON status.id = employee_roles.status_id
-  WHERE employee_roles.id = %d`, id)
+  WHERE employee_roles.id = :id`
 
-	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{})
+	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
+		"id": id,
+	})
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".EmployeeRoleStorage->Find()",

@@ -13,5 +13,6 @@ type Usecase interface {
 	Count(context *gin.Context, params models.FindAllBusinessParams) (int, *types.Error)
 	Create(context *gin.Context, newData models.Business) (*models.Business, *types.Error)
 	Update(context *gin.Context, id string, updatedData models.Business) (*models.Business, *types.Error)
+
 	UpdateStatus(*gin.Context, string, string) (*models.Business, *types.Error)
 }

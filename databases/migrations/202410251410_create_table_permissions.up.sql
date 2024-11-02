@@ -20,5 +20,5 @@ CREATE TABLE permissions (
   INDEX idx_package (package),
   INDEX idx_module_name (module_name),
   INDEX idx_action_name (action_name),
-  INDEX index_sequence_number(sequence_number_header, sequence_number_detail)
+  INDEX index_sequence_number(sequence_number_detail)
 );

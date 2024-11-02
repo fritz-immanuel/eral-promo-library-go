@@ -102,7 +102,6 @@ func (s UserActionRepository) FindAll(ctx *gin.Context, params models.FindAllAct
 		obj := &models.UserAction{
 			ID:          v.ID,
 			UserID:      v.UserID,
-			UserName:    v.UserName,
 			TableName:   v.TableName,
 			Action:      v.Action,
 			ActionValue: v.ActionValue,
@@ -128,8 +127,8 @@ func (s UserActionRepository) FindPermission(ctx *gin.Context, ModuleName string
 	}
 
 	query := fmt.Sprintf(`
-  SELECT permission.*
-  FROM permission
+  SELECT permissions.*
+  FROM permissions
   WHERE %s
   `, where)
 
@@ -170,7 +169,7 @@ func (s UserActionRepository) FindPermission(ctx *gin.Context, ModuleName string
 }
 
 func (s UserActionRepository) CreateManual(ctx *gin.Context, obj *models.UserAction) *types.Error {
-	insertQuery := fmt.Sprintf("INSERT INTO user_actions (id, user_id, user_name, table_name, action, ref_id, created_at) VALUES (UUID(), '%s', '%s', '%s', '%s', '%s', UTC_TIMESTAMP + INTERVAL 7 HOUR)", *appcontext.UserID(ctx), *appcontext.UserName(ctx), obj.TableName, obj.Action, obj.RefID)
+	insertQuery := fmt.Sprintf("INSERT INTO user_actions (id, user_id, table_name, action, ref_id, created_at) VALUES (UUID(), '%s', '%s', '%s', '%s', UTC_TIMESTAMP + INTERVAL 7 HOUR)", *appcontext.UserID(ctx), obj.TableName, obj.Action, obj.RefID)
 
 	err := s.repository.ExecQuery(ctx, insertQuery, nil)
 	if err != nil {
@@ -195,7 +194,7 @@ func (s UserActionRepository) Find(ctx *gin.Context, id int) (*models.UserAction
 
 	query := `
   SELECT
-    user_actions.id, user_actions.user_id, user_actions.user_name, user_actions.table_name,
+    user_actions.id, user_actions.user_id, user_actions.table_name,
     user_actions.action, user_actions.action_value, user_actions.ref_id
   FROM user_actions
   WHERE user_actions.id = :id FOR UPDATE`
@@ -291,7 +290,7 @@ func (s UserActionRepository) FindAllQueueMaster(ctx *gin.Context, params models
 
 	query = fmt.Sprintf(`
   SELECT
-    user_actions.id, user_actions.user_id, user_actions.user_name, user_actions.table_name
+    user_actions.id, user_actions.user_id, user_actions.table_name
     user_actions.action, user_actions.action_value, user_actions.ref_id
   FROM user_actions
   WHERE user_actions.ref_id != 0 AND %s

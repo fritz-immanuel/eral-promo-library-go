@@ -130,7 +130,6 @@ func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.User) (*mod
 	data.Name = obj.Name
 	data.Email = obj.Email
 	data.Username = obj.Username
-	data.StatusID = obj.StatusID
 
 	result, err := u.userRepo.Update(ctx, data)
 	if err != nil {

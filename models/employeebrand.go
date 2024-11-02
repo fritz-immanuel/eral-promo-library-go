@@ -10,8 +10,10 @@ type EmployeeBrandBulk struct {
 
 type EmployeeBrand struct {
 	ID         string `json:"ID" db:"id"`
-	EmployeeID string `json:"EmployeeID" db:"name" validate:"required"`
+	EmployeeID string `json:"EmployeeID" db:"employee_id" validate:"required"`
 	BrandID    string `json:"BrandID" db:"brand_id" validate:"required"`
+
+	Brand *Brand `json:"Brand"`
 }
 
 type FindAllEmployeeBrandParams struct {

@@ -126,7 +126,7 @@ func (u *PromoUsecase) Create(ctx *gin.Context, obj models.Promo) (*models.Promo
 		PrincipleSupport: obj.PrincipleSupport,
 		InternalSupport:  obj.InternalSupport,
 		Description:      obj.Description,
-		StatusID:         obj.StatusID,
+		StatusID:         models.DEFAULT_STATUS_CODE,
 	}
 
 	result, err := u.promoRepo.Create(ctx, &data)

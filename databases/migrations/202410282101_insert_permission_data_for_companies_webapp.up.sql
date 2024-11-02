@@ -22,7 +22,7 @@ VALUES
     'Company',
     'View',
     'GET',
-    '/web/v1/companies',
+    '/web/v1/company',
     'companies',
     CURRENT_TIMESTAMP,
     '0',

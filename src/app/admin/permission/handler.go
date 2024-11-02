@@ -13,16 +13,13 @@ import (
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library/data"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/http/response"
-	"github.com/fritz-immanuel/eral-promo-library-go/library/notif"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 
 	permissionRepository "github.com/fritz-immanuel/eral-promo-library-go/src/services/permission/repository"
 	permissionUsecase "github.com/fritz-immanuel/eral-promo-library-go/src/services/permission/usecase"
 )
 
-var (
-	dataresponse interface{}
-)
+var ()
 
 // PermissionHandler  represent the httphandler for article
 type PermissionHandler struct {
@@ -30,17 +27,16 @@ type PermissionHandler struct {
 	dataManager       *data.Manager
 	Result            gin.H
 	Status            int
-	notifier          *notif.SlackNotifier
 }
 
-func (h PermissionHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, slackNotifier *notif.SlackNotifier, router *gin.Engine, v *gin.RouterGroup) {
+func (h PermissionHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, router *gin.Engine, v *gin.RouterGroup) {
 	permissionRepo := permissionRepository.NewPermissionRepository(
 		data.NewMySQLStorage(db, "permissions", models.Permission{}, data.MysqlConfig{}),
 	)
 
 	uPermission := permissionUsecase.NewPermissionUsecase(db, &permissionRepo)
 
-	base := &PermissionHandler{PermissionUsecase: uPermission, dataManager: dataManager, notifier: slackNotifier}
+	base := &PermissionHandler{PermissionUsecase: uPermission, dataManager: dataManager}
 
 	rs := v.Group("/permissions")
 	{

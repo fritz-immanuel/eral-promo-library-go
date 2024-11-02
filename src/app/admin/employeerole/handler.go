@@ -108,6 +108,7 @@ func (h *EmployeeRoleHandler) Find(c *gin.Context) {
 			return
 		}
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
+		return
 	}
 
 	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Role Data fetched!", Data: result}

@@ -42,7 +42,7 @@ func (h EmployeeHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rou
 		data.NewMySQLStorage(db, "employees", models.Employee{}, data.MysqlConfig{}),
 		data.NewMySQLStorage(db, "status", models.Status{}, data.MysqlConfig{}),
 	)
-	
+
 	employeebrandRepo := employeeRepository.NewEmployeeBrandRepository(
 		data.NewMySQLStorage(db, "employee_brands", models.EmployeeBrand{}, data.MysqlConfig{}),
 	)
@@ -128,6 +128,7 @@ func (h *EmployeeHandler) Find(c *gin.Context) {
 			return
 		}
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
+		return
 	}
 
 	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Data fetched!", Data: result}
@@ -155,6 +156,12 @@ func (h *EmployeeHandler) Create(c *gin.Context) {
 	}
 	employee.Username = c.PostForm("Username")
 	employee.Password = fmt.Sprintf("%x", hash.Sum(nil))
+	employee.BusinessID, err = helpers.ValidateUUID(c.PostForm("BusinessID"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->Create()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 	employee.EmployeeRoleID, err = helpers.ValidateUUID(c.PostForm("EmployeeRoleID"))
 	if err != nil {
 		err.Path = ".EmployeeHandler->Create()" + err.Path
@@ -218,10 +225,28 @@ func (h *EmployeeHandler) Update(c *gin.Context) {
 		return
 	}
 	employee.Username = c.PostForm("Username")
+	employee.BusinessID, err = helpers.ValidateUUID(c.PostForm("BusinessID"))
+	if err != nil {
+		err.Path = ".EmployeeHandler->Update()" + err.Path
+		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
 	employee.EmployeeRoleID, err = helpers.ValidateUUID(c.PostForm("EmployeeRoleID"))
 	if err != nil {
 		err.Path = ".EmployeeHandler->Update()" + err.Path
 		response.Error(c, err.Message, err.StatusCode, *err)
+		return
+	}
+
+	// BRANDS
+	errJson := json.Unmarshal([]byte(c.PostForm("Brands")), &employee.Brands)
+	if errJson != nil {
+		err = &types.Error{
+			Path:  ".EmployeeHandler->Update()",
+			Error: errJson,
+			Type:  "convert-error",
+		}
+		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
 		return
 	}
 
@@ -300,6 +325,7 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 			return
 		}
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
+		return
 	}
 
 	var currentPassword = modelEmployee.Password

@@ -85,12 +85,30 @@ func (u *EmployeeUsecase) Create(ctx *gin.Context, obj models.Employee) (*models
 		return nil, err
 	}
 
+	// check for duplicate username
+	employees, err := u.employeeRepo.FindAll(ctx, models.FindAllEmployeeParams{Username: obj.Username})
+	if err != nil {
+		err.Path = ".EmployeeUsecase->Create()" + err.Path
+		return nil, err
+	}
+
+	if len(employees) > 0 {
+		return nil, &types.Error{
+			Path:       ".EmployeeUsecase->Create()",
+			Message:    "Username already exists",
+			Error:      data.ErrNotFound,
+			StatusCode: http.StatusUnprocessableEntity,
+			Type:       "mysql-error",
+		}
+	}
+
 	data := models.Employee{}
 	data.ID = uuid.New().String()
 	data.Name = obj.Name
 	data.Email = obj.Email
 	data.Username = obj.Username
 	data.Password = obj.Password
+	data.BusinessID = obj.BusinessID
 	data.EmployeeRoleID = obj.EmployeeRoleID
 	data.StatusID = models.DEFAULT_STATUS_CODE
 
@@ -126,11 +144,31 @@ func (u *EmployeeUsecase) Update(ctx *gin.Context, id string, obj models.Employe
 		return nil, err
 	}
 
+	// check for duplicate username
+	var dupeParams models.FindAllEmployeeParams
+	dupeParams.Username = obj.Username
+	dupeParams.FindAllParams.DataFinder = fmt.Sprintf(`employees.id != '%s'`, id)
+	employees, err := u.employeeRepo.FindAll(ctx, dupeParams)
+	if err != nil {
+		err.Path = ".EmployeeUsecase->Update()" + err.Path
+		return nil, err
+	}
+
+	if len(employees) > 0 {
+		return nil, &types.Error{
+			Path:       ".EmployeeUsecase->Update()",
+			Message:    "Username already exists",
+			Error:      fmt.Errorf("Username already exists"),
+			StatusCode: http.StatusUnprocessableEntity,
+			Type:       "mysql-error",
+		}
+	}
+
 	data.Name = obj.Name
 	data.Email = obj.Email
 	data.Username = obj.Username
+	data.BusinessID = obj.BusinessID
 	data.EmployeeRoleID = obj.EmployeeRoleID
-	data.StatusID = obj.StatusID
 
 	result, err := u.employeeRepo.Update(ctx, data)
 	if err != nil {

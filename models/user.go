@@ -18,7 +18,7 @@ type User struct {
 	Name     string `json:"Name" db:"name" validate:"required"`
 	Email    string `json:"Email" db:"email"`
 	Username string `json:"Username" db:"username" validate:"required"`
-	Password string `json:"Password" db:"password" validate:"required"`
+	Password string `json:"Password" db:"password"`
 	StatusID string `json:"StatusID" db:"status_id"`
 
 	Status Status `json:"Status"`

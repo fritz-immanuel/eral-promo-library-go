@@ -69,31 +69,31 @@ func JwtSignString(c Credential) (string, error) {
 	claims["Exp"] = time.Now().Add(time.Hour * 72)
 	claims["Type"] = c.Type
 
-	config, _ := configs.GetConfiguration()
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     config.RedisAddr,
-		Password: config.RedisPassword,
-		DB:       config.RedisDB,
-	})
+	// config, _ := configs.GetConfiguration()
+	// redisClient := redis.NewClient(&redis.Options{
+	// 	Addr:     config.RedisAddr,
+	// 	Password: config.RedisPassword,
+	// 	DB:       config.RedisDB,
+	// })
 
 	token, err := sign.SignedString([]byte("secret"))
 	if err != nil {
 		return "", err
 	}
 
-	if errRedis := redisClient.Set(
-		token,
-		fmt.Sprintf("{\"id\":%s}", c.ID),
-		time.Second*time.Duration(config.RedisTimeOut),
-	).Err(); errRedis != nil {
-		log.Printf(`
-		======================================================================
-		Error Storing Caching in "Auth":
-		Error: %v,
-		======================================================================
-		`, errRedis)
-		return "", errRedis
-	}
+	// if errRedis := redisClient.Set(
+	// 	token,
+	// 	fmt.Sprintf("{\"id\":%s}", c.ID),
+	// 	time.Second*time.Duration(config.RedisTimeOut),
+	// ).Err(); errRedis != nil {
+	// 	log.Printf(`
+	// 	======================================================================
+	// 	Error Storing Caching in "Auth":
+	// 	Error: %v,
+	// 	======================================================================
+	// 	`, errRedis)
+	// 	return "", errRedis
+	// }
 	return token, nil
 }
 
@@ -230,8 +230,8 @@ func GetJWTClaims(ctx *gin.Context, token string) (jwt.MapClaims, bool) {
 	} else {
 		JwtActiveToken := token
 		claims, ok = extractClaims(JwtActiveToken)
-
 	}
+
 	return claims, ok
 }
 

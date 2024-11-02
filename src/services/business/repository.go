@@ -12,5 +12,6 @@ type Repository interface {
 	Find(*gin.Context, string) (*models.Business, *types.Error)
 	Create(*gin.Context, *models.Business) (*models.Business, *types.Error)
 	Update(*gin.Context, *models.Business) (*models.Business, *types.Error)
+
 	UpdateStatus(*gin.Context, string, string) (*models.Business, *types.Error)
 }

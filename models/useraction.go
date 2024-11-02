@@ -9,7 +9,6 @@ import (
 type UserActionBulk struct {
 	ID          string    `json:"ID" db:"id"`
 	UserID      string    `json:"UserID" db:"user_id"`
-	UserName    string    `json:"UserName" db:"user_name"`
 	TableName   string    `json:"TableName" db:"table_name"`
 	Action      string    `json:"Action" db:"action"`
 	ActionValue int       `json:"ActionValue" db:"action_value"`
@@ -22,7 +21,6 @@ type UserActionBulk struct {
 type UserAction struct {
 	ID          string    `json:"ID" db:"id"`
 	UserID      string    `json:"UserID" db:"user_id"`
-	UserName    string    `json:"UserName" db:"user_name"`
 	TableName   string    `json:"TableName" db:"table_name"`
 	Action      string    `json:"Action" db:"action"`
 	ActionValue int       `json:"ActionValue" db:"action_value"`

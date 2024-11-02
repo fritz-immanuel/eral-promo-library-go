@@ -66,7 +66,7 @@ func (u *CompanyUsecase) Create(ctx *gin.Context, obj models.Company) (*models.C
 		Name:       obj.Name,
 		Code:       obj.Code,
 		LogoImgURL: obj.LogoImgURL,
-		StatusID:   obj.StatusID,
+		StatusID:   models.DEFAULT_STATUS_CODE,
 	}
 
 	result, err := u.companyRepo.Create(ctx, &data)

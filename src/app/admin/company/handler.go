@@ -46,6 +46,11 @@ func (h CompanyHandler) RegisterAPI(db *sqlx.DB, dataManager *data.Manager, rout
 
 		rs.PUT("/:id/status", middleware.Auth, base.UpdateStatus)
 	}
+
+	rss := v.Group("/statuses")
+	{
+		rss.GET("/company", base.FindStatus)
+	}
 }
 
 func (h *CompanyHandler) FindAll(c *gin.Context) {
@@ -239,6 +244,18 @@ func (h *CompanyHandler) Update(c *gin.Context) {
 		"result": dataresponse,
 	}
 
+	c.JSON(http.StatusOK, h.Result)
+}
+
+func (h *CompanyHandler) FindStatus(c *gin.Context) {
+	var datas []*models.Status
+	datas = append(datas, &models.Status{ID: models.STATUS_INACTIVE, Name: "Inactive"})
+	datas = append(datas, &models.Status{ID: models.STATUS_ACTIVE, Name: "Active"})
+
+	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Company Status Data fetched!", Data: datas}
+	h.Result = gin.H{
+		"result": dataresponse,
+	}
 	c.JSON(http.StatusOK, h.Result)
 }
 

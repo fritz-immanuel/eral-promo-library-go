@@ -46,13 +46,13 @@ func (s UserPermissionRepository) FindAll(ctx *gin.Context, params models.FindAl
   SELECT
     user_permissions.user_id,
     user_permissions.permission_id,
-    permission.package AS permission_package,
-    permission.module_name AS permission_module_name,
-    permission.action_name AS permission_action_name,
-    permission.http_method AS permission_http_method,
-    permission.route AS permission_route
+    permissions.package AS permission_package,
+    permissions.module_name AS permission_module_name,
+    permissions.action_name AS permission_action_name,
+    permissions.http_method AS permission_http_method,
+    permissions.route AS permission_route
   FROM user_permissions
-  JOIN permission on permission.id = user_permissions.permission_id
+  JOIN permissions on permissions.id = user_permissions.permission_id
   WHERE %s
   `, where)
 
@@ -97,22 +97,24 @@ func (s UserPermissionRepository) Find(ctx *gin.Context, id string) (*models.Use
 
 	var err error
 
-	query := fmt.Sprintf(`
+	query := `
   SELECT
     user_permissions.user_id,
     user_permissions.permission_id,
-    permission.package AS permission_package,
-    permission.module_name AS permission_module_name,
-    permission.action_name AS permission_action_name,
-    permission.display_module_name AS permission_display_module_name,
-    permission.display_action_name AS permission_display_action_name,
-    permission.http_method AS permission_http_method,
-    permission.route AS permission_route
+    permissions.package AS permission_package,
+    permissions.module_name AS permission_module_name,
+    permissions.action_name AS permission_action_name,
+    permissions.display_module_name AS permission_display_module_name,
+    permissions.display_action_name AS permission_display_action_name,
+    permissions.http_method AS permission_http_method,
+    permissions.route AS permission_route
   FROM user_permissions
-  JOIN permission on permission.id = user_permissions.permission_id
-  WHERE user_permissions.id = :id`)
+  JOIN permissions on permissions.id = user_permissions.permission_id
+  WHERE user_permissions.id = :id`
 
-	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{})
+	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
+		"id": id,
+	})
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".UserPermissionStorage->Find()",
@@ -172,7 +174,7 @@ func (s UserPermissionRepository) Create(ctx *gin.Context, obj *models.CreateUpd
 
 func (s UserPermissionRepository) DeleteByUserID(ctx *gin.Context, id string) *types.Error {
 	args := make(map[string]interface{})
-	err := s.repository.ExecQuery(ctx, fmt.Sprintf("DELETE FROM user_permissions WHERE user_id = %s", id), args)
+	err := s.repository.ExecQuery(ctx, fmt.Sprintf("DELETE FROM user_permissions WHERE user_id = '%s'", id), args)
 	if err != nil {
 		return &types.Error{
 			Path:       ".UserPermissionStorage->DeleteByUserID()",
@@ -208,7 +210,7 @@ func (s UserPermissionRepository) CreateBunch(ctx *gin.Context, userID string, p
   INSERT INTO user_permissions (user_id, permission_id, created_at, updated_at)
   SELECT "%s", id, UTC_TIMESTAMP + INTERVAL 7 hour, UTC_TIMESTAMP + INTERVAL 7 HOUR
   FROM (
-    SELECT id FROM permission
+    SELECT id FROM permissions
     WHERE %s AND id %s IN (
       SELECT permission_id FROM user_permissions
       WHERE user_id = "%s"

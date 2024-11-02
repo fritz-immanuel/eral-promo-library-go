@@ -67,7 +67,7 @@ func (u *BrandUsecase) Create(ctx *gin.Context, obj models.Brand) (*models.Brand
 		Code:       obj.Code,
 		LogoImgURL: obj.LogoImgURL,
 		BusinessID: obj.BusinessID,
-		StatusID:   obj.StatusID,
+		StatusID:   models.DEFAULT_STATUS_CODE,
 	}
 
 	result, err := u.brandRepo.Create(ctx, &data)

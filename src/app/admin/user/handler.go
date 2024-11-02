@@ -85,6 +85,10 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 		}
 	}
 
+	for _, u := range datas {
+		u.Password = ""
+	}
+
 	params.FindAllParams.Page = -1
 	params.FindAllParams.Size = -1
 	length, err := h.UserUsecase.Count(c, params)
@@ -115,11 +119,14 @@ func (h *UserHandler) Find(c *gin.Context) {
 	if err != nil {
 		err.Path = ".UserHandler->Find()" + err.Path
 		if err.Error == data.ErrNotFound {
-			response.Error(c, "User not found", http.StatusUnprocessableEntity, *err)
+			response.Error(c, "User not found", http.StatusNotFound, *err)
 			return
 		}
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
+		return
 	}
+
+	result.Password = ""
 
 	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "User Data fetched!", Data: result}
 	h.Result = gin.H{
@@ -218,6 +225,8 @@ func (h *UserHandler) Update(c *gin.Context) {
 			return err
 		}
 
+		data.Password = ""
+
 		return nil
 	})
 
@@ -287,6 +296,7 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 			return
 		}
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
+		return
 	}
 
 	var currentPassword = modelUser.Password
@@ -382,7 +392,7 @@ func (h *UserHandler) UpdateStatus(c *gin.Context) {
 
 	userID, err := helpers.ValidateUUID(c.Param("id"))
 	if err != nil {
-		err.Path = ".EmployeeRoleHandler->UpdateStatus()" + err.Path
+		err.Path = ".UserRoleHandler->UpdateStatus()" + err.Path
 		response.Error(c, err.Message, err.StatusCode, *err)
 		return
 	}
@@ -394,6 +404,8 @@ func (h *UserHandler) UpdateStatus(c *gin.Context) {
 		if err != nil {
 			return err
 		}
+
+		data.Password = ""
 
 		return nil
 	})

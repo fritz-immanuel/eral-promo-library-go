@@ -108,15 +108,17 @@ func (s UserRepository) Find(ctx *gin.Context, id string) (*models.User, *types.
 	result := models.User{}
 	bulks := []*models.UserBulk{}
 
-	query := fmt.Sprintf(`
+	query := `
   SELECT
     users.id, users.name, users.email, users.password, users.username,
     users.status_id, status.name AS status_name
   FROM users
   JOIN status on status.id = users.status_id
-  WHERE users.id = %d`, id)
+  WHERE users.id = :id`
 
-	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{})
+	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
+		"id": id,
+	})
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".UserStorage->Find()",

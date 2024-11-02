@@ -60,27 +60,27 @@ func init() {
 	}
 	filea := &embedded.EmbeddedFile{
 		Filename:    "202410251408_create_table_user_actions.up.sql",
-		FileModTime: time.Unix(1730021050, 0),
+		FileModTime: time.Unix(1730541673, 0),
 
-		Content: string("CREATE TABLE user_actions (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) DEFAULT '',\r\n  table_name VARCHAR(200) DEFAULT NULL,\r\n  action VARCHAR(100) DEFAULT NULL,\r\n  ref_id VARCHAR(255) DEFAULT '0',\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  PRIMARY KEY (id),\r\n  INDEX idx_user_id (user_id),\r\n  INDEX idx_ref_id (ref_id),\r\n  INDEX idx_table_name (table_name)\r\n);"),
+		Content: string("CREATE TABLE user_actions (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) DEFAULT '',\r\n  table_name VARCHAR(200) DEFAULT NULL,\r\n  action VARCHAR(100) DEFAULT NULL,\r\n  action_value INT DEFAULT 0,\r\n  ref_id VARCHAR(255) DEFAULT '0',\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  PRIMARY KEY (id),\r\n  INDEX idx_user_id (user_id),\r\n  INDEX idx_ref_id (ref_id),\r\n  INDEX idx_table_name (table_name)\r\n);"),
 	}
 	fileb := &embedded.EmbeddedFile{
-		Filename:    "202410251409_create_table_user_permissions.sql",
+		Filename:    "202410251409_create_table_user_permissions.up.sql",
 		FileModTime: time.Unix(1729842674, 0),
 
 		Content: string("CREATE TABLE user_permissions (\r\n  id VARCHAR(255) NOT NULL,\r\n  user_id VARCHAR(255) DEFAULT '',\r\n  permission_id INT DEFAULT 0,\r\n\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n\r\n  PRIMARY KEY (id),\r\n  INDEX idx_user_id (user_id),\r\n  INDEX idx_permission_id (permission_id)\r\n);"),
 	}
 	filec := &embedded.EmbeddedFile{
 		Filename:    "202410251410_create_table_permissions.up.sql",
-		FileModTime: time.Unix(1730206673, 0),
+		FileModTime: time.Unix(1730520165, 0),
 
-		Content: string("CREATE TABLE permissions (\r\n  id INT AUTO_INCREMENT,\r\n  package VARCHAR(255) DEFAULT '',\r\n  module_name VARCHAR(255) DEFAULT '',\r\n  action_name VARCHAR(255) DEFAULT '',\r\n  display_module_name VARCHAR(255) DEFAULT '',\r\n  display_action_name VARCHAR(255) DEFAULT '',\r\n  http_method VARCHAR(255) DEFAULT '',\r\n  route VARCHAR(255) DEFAULT '',\r\n  table_name VARCHAR(255) DEFAULT '',\r\n  is_hidden INT DEFAULT 0,\r\n  sequence_number_detail INT DEFAULT 0,\r\n\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n\r\n  PRIMARY KEY (id),\r\n  INDEX idx_package (package),\r\n  INDEX idx_module_name (module_name),\r\n  INDEX idx_action_name (action_name),\r\n  INDEX index_sequence_number(sequence_number_header, sequence_number_detail)\r\n);"),
+		Content: string("CREATE TABLE permissions (\r\n  id INT AUTO_INCREMENT,\r\n  package VARCHAR(255) DEFAULT '',\r\n  module_name VARCHAR(255) DEFAULT '',\r\n  action_name VARCHAR(255) DEFAULT '',\r\n  display_module_name VARCHAR(255) DEFAULT '',\r\n  display_action_name VARCHAR(255) DEFAULT '',\r\n  http_method VARCHAR(255) DEFAULT '',\r\n  route VARCHAR(255) DEFAULT '',\r\n  table_name VARCHAR(255) DEFAULT '',\r\n  is_hidden INT DEFAULT 0,\r\n  sequence_number_detail INT DEFAULT 0,\r\n\r\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  created_by VARCHAR(255) DEFAULT '',\r\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,\r\n  updated_by VARCHAR(255) DEFAULT '',\r\n\r\n  PRIMARY KEY (id),\r\n  INDEX idx_package (package),\r\n  INDEX idx_module_name (module_name),\r\n  INDEX idx_action_name (action_name),\r\n  INDEX index_sequence_number(sequence_number_detail)\r\n);"),
 	}
 	filed := &embedded.EmbeddedFile{
 		Filename:    "202410251411_insert_permission_data_for_users.up.sql",
-		FileModTime: time.Unix(1730207564, 0),
+		FileModTime: time.Unix(1730520445, 0),
 
-		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    sequence_number_detail,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'List',\r\n    'User',\r\n    'List',\r\n    'GET',\r\n    '/admin/v1/users',\r\n    'users',\r\n    1,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'View',\r\n    'User',\r\n    'View',\r\n    'GET',\r\n    '/admin/v1/users/:id',\r\n    'users',\r\n    2,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'Create',\r\n    'User',\r\n    'Create',\r\n    'POST',\r\n    '/admin/v1/users',\r\n    'users',\r\n    3,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'Edit',\r\n    'User',\r\n    'Edit',\r\n    'PUT',\r\n    '/admin/v1/users/:id',\r\n    'users',\r\n    4,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'UpdateStatus',\r\n    'User',\r\n    'Update Status',\r\n    'PUT',\r\n    '/admin/v1/users/:id/status',\r\n    'users',\r\n    5,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'UpdatePassword',\r\n    'User',,\r\n    'Update Password',\r\n    'PUT',\r\n    '/admin/v1/users/:id/password',\r\n    'users',\r\n    6,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'ResetPassword',\r\n    'User',,\r\n    'Reset Password',\r\n    'PUT',\r\n    '/admin/v1/users/:id/reset-password',\r\n    'users',\r\n    7,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  );"),
+		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    sequence_number_detail,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'List',\r\n    'User',\r\n    'List',\r\n    'GET',\r\n    '/admin/v1/users',\r\n    'users',\r\n    1,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'View',\r\n    'User',\r\n    'View',\r\n    'GET',\r\n    '/admin/v1/users/:id',\r\n    'users',\r\n    2,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'Create',\r\n    'User',\r\n    'Create',\r\n    'POST',\r\n    '/admin/v1/users',\r\n    'users',\r\n    3,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'Edit',\r\n    'User',\r\n    'Edit',\r\n    'PUT',\r\n    '/admin/v1/users/:id',\r\n    'users',\r\n    4,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'UpdateStatus',\r\n    'User',\r\n    'Update Status',\r\n    'PUT',\r\n    '/admin/v1/users/:id/status',\r\n    'users',\r\n    5,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'UpdatePassword',\r\n    'User',\r\n    'Update Password',\r\n    'PUT',\r\n    '/admin/v1/users/:id/password',\r\n    'users',\r\n    6,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'User',\r\n    'ResetPassword',\r\n    'User',\r\n    'Reset Password',\r\n    'PUT',\r\n    '/admin/v1/users/:id/reset-password',\r\n    'users',\r\n    7,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  );"),
 	}
 	filee := &embedded.EmbeddedFile{
 		Filename:    "202410251412_insert_permission_data_for_business.up.sql",
@@ -126,9 +126,9 @@ func init() {
 	}
 	filel := &embedded.EmbeddedFile{
 		Filename:    "202410271601_insert_companies_init_data.up.sql",
-		FileModTime: time.Unix(1730020559, 0),
+		FileModTime: time.Unix(1730520515, 0),
 
-		Content: string("INSERT INTO\r\n  companies (id, name, code)\r\nVALUES\r\n  (UUID(), 'Erajaya Active Lifestyle', 'ERAL'); "),
+		Content: string("INSERT INTO\r\n  companies (id, name, code, logo_img_url)\r\nVALUES\r\n  (UUID(), 'Erajaya Active Lifestyle', 'ERAL', \"\"); "),
 	}
 	filem := &embedded.EmbeddedFile{
 		Filename:    "202410271700_create_table_employee_roles.up.sql",
@@ -156,15 +156,15 @@ func init() {
 	}
 	fileq := &embedded.EmbeddedFile{
 		Filename:    "202410282000_insert_permission_data_for_brands.up.sql",
-		FileModTime: time.Unix(1730207564, 0),
+		FileModTime: time.Unix(1730520619, 0),
 
-		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    sequence_number_detail,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteAdmin',\r\n    'Brand',\r\n    'List',\r\n    'Brand',\r\n    'List',\r\n    'GET',\r\n    '/admin/v1/brands',\r\n    'brands',\r\n    1,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Brand',\r\n    'View',\r\n    'Brand',\r\n    'View',\r\n    'GET',\r\n    '/admin/v1/brands/:id',\r\n    'brands',\r\n    2,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Brand',\r\n    'Create',\r\n    'Brand',\r\n    'Create',\r\n    'POST',\r\n    '/admin/v1/brands',\r\n    'brands',\r\n    3,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Brand',\r\n    'Edit',\r\n    'Brand',\r\n    'Edit',\r\n    'PUT',\r\n    '/admin/v1/brands/:id',\r\n    'brands',\r\n    4,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Brand',\r\n    'UpdateStatus',\r\n    'Brand',\r\n    'Update Status',\r\n    'PUT',\r\n    5,\r\n    '/admin/v1/brands/:id/status',\r\n    'brands',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  );"),
+		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    sequence_number_detail,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteAdmin',\r\n    'Brand',\r\n    'List',\r\n    'Brand',\r\n    'List',\r\n    'GET',\r\n    '/admin/v1/brands',\r\n    'brands',\r\n    1,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Brand',\r\n    'View',\r\n    'Brand',\r\n    'View',\r\n    'GET',\r\n    '/admin/v1/brands/:id',\r\n    'brands',\r\n    2,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Brand',\r\n    'Create',\r\n    'Brand',\r\n    'Create',\r\n    'POST',\r\n    '/admin/v1/brands',\r\n    'brands',\r\n    3,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Brand',\r\n    'Edit',\r\n    'Brand',\r\n    'Edit',\r\n    'PUT',\r\n    '/admin/v1/brands/:id',\r\n    'brands',\r\n    4,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Brand',\r\n    'UpdateStatus',\r\n    'Brand',\r\n    'Update Status',\r\n    'PUT',\r\n    '/admin/v1/brands/:id/status',\r\n    'brands',\r\n    5,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  );"),
 	}
 	filer := &embedded.EmbeddedFile{
 		Filename:    "202410282001_insert_permission_data_for_companies.up.sql",
-		FileModTime: time.Unix(1730207564, 0),
+		FileModTime: time.Unix(1730549065, 0),
 
-		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    sequence_number_detail,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteAdmin',\r\n    'Company',\r\n    'List',\r\n    'Company',\r\n    'List',\r\n    'GET',\r\n    '/admin/v1/companies',\r\n    'companies',\r\n    1,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Company',\r\n    'View',\r\n    'Company',\r\n    'View',\r\n    'GET',\r\n    '/admin/v1/companies/:id',\r\n    'companies',\r\n    2,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Company',\r\n    'Create',\r\n    'Company',\r\n    'Create',\r\n    'POST',\r\n    '/admin/v1/companies',\r\n    'companies',\r\n    3,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Company',\r\n    'Edit',\r\n    'Company',\r\n    'Edit',\r\n    'PUT',\r\n    '/admin/v1/companies/:id',\r\n    'companies',\r\n    4,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Company',\r\n    'UpdateStatus',\r\n    'Company',\r\n    'Update Status',\r\n    'PUT',\r\n    '/admin/v1/companies/:id/status',\r\n    'companies',\r\n    5,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  );"),
+		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    sequence_number_detail,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteAdmin',\r\n    'Company',\r\n    'List',\r\n    'Company',\r\n    'List',\r\n    'GET',\r\n    '/admin/v1/company',\r\n    'companies',\r\n    1,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Company',\r\n    'View',\r\n    'Company',\r\n    'View',\r\n    'GET',\r\n    '/admin/v1/company/:id',\r\n    'companies',\r\n    2,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Company',\r\n    'Create',\r\n    'Company',\r\n    'Create',\r\n    'POST',\r\n    '/admin/v1/company',\r\n    'companies',\r\n    3,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Company',\r\n    'Edit',\r\n    'Company',\r\n    'Edit',\r\n    'PUT',\r\n    '/admin/v1/company/:id',\r\n    'companies',\r\n    4,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  ), (\r\n    'WebsiteAdmin',\r\n    'Company',\r\n    'UpdateStatus',\r\n    'Company',\r\n    'Update Status',\r\n    'PUT',\r\n    '/admin/v1/company/:id/status',\r\n    'companies',\r\n    5,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0'\r\n  );"),
 	}
 	files := &embedded.EmbeddedFile{
 		Filename:    "202410282002_insert_permission_data_for_employees.up.sql",
@@ -185,14 +185,14 @@ func init() {
 		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by,\r\n    is_hidden\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteApp',\r\n    'Brand',\r\n    'List',\r\n    'Brand',\r\n    'List',\r\n    'GET',\r\n    '/web/v1/brands',\r\n    'brands',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    1\r\n  ), (\r\n    'WebsiteApp',\r\n    'Brand',\r\n    'View',\r\n    'Brand',\r\n    'View',\r\n    'GET',\r\n    '/web/v1/brands/:id',\r\n    'brands',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    1\r\n  );"),
 	}
 	filev := &embedded.EmbeddedFile{
-		Filename:    "202410282101_insert_permission_data_for_business_webapp.up.sql",
-		FileModTime: time.Unix(1730207564, 0),
+		Filename:    "202410282101_insert_permission_data_for_companies_webapp.up.sql",
+		FileModTime: time.Unix(1730549141, 0),
 
-		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by,\r\n    is_hidden\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteApp',\r\n    'Company',\r\n    'View',\r\n    'Company',\r\n    'View',\r\n    'GET',\r\n    '/web/v1/companies',\r\n    'companies',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    1\r\n  );"),
+		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by,\r\n    is_hidden\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteApp',\r\n    'Company',\r\n    'View',\r\n    'Company',\r\n    'View',\r\n    'GET',\r\n    '/web/v1/company',\r\n    'companies',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    1\r\n  );"),
 	}
 	filew := &embedded.EmbeddedFile{
-		Filename:    "202410282102_insert_permission_data_for_companies_webapp.up.sql",
-		FileModTime: time.Unix(1730207564, 0),
+		Filename:    "202410282102_insert_permission_data_for_business_webapp.up.sql",
+		FileModTime: time.Unix(1730549157, 0),
 
 		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by,\r\n    is_hidden\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteApp',\r\n    'Business',\r\n    'View',\r\n    'Business',\r\n    'View',\r\n    'GET',\r\n    '/web/v1/business',\r\n    'business',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    1\r\n  );"),
 	}
@@ -210,15 +210,15 @@ func init() {
 	}
 	filez := &embedded.EmbeddedFile{
 		Filename:    "202410292000_insert_permission_data_for_permissions.up.sql",
-		FileModTime: time.Unix(1730207564, 0),
+		FileModTime: time.Unix(1730520694, 0),
 
-		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    sequence_number_detail,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteAdmin',\r\n    'Permission',\r\n    'List',\r\n    'Permission',\r\n    'List',\r\n    'GET',\r\n    '/admin/v1/permissions',\r\n    'permissions',\r\n    1,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    1\r\n  );"),
+		Content: string("INSERT INTO\r\n  `permissions`(\r\n    package,\r\n    module_name,\r\n    action_name,\r\n    display_module_name,\r\n    display_action_name,\r\n    http_method,\r\n    route,\r\n    table_name,\r\n    sequence_number_detail,\r\n    created_at,\r\n    created_by,\r\n    updated_at,\r\n    updated_by,\r\n    is_hidden\r\n  )\r\nVALUES\r\n  (\r\n    'WebsiteAdmin',\r\n    'Permission',\r\n    'List',\r\n    'Permission',\r\n    'List',\r\n    'GET',\r\n    '/admin/v1/permissions',\r\n    'permissions',\r\n    1,\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    CURRENT_TIMESTAMP,\r\n    '0',\r\n    1\r\n  );"),
 	}
 
 	// define dirs
 	dir1 := &embedded.EmbeddedDir{
 		Filename:   "",
-		DirModTime: time.Unix(1730207527, 0),
+		DirModTime: time.Unix(1730549156, 0),
 		ChildFiles: []*embedded.EmbeddedFile{
 			file2, // "202410251400_create_table_status.up.sql"
 			file3, // "202410251401_insert_status_data.up.sql"
@@ -229,7 +229,7 @@ func init() {
 			file8, // "202410251406_create_table_business.up.sql"
 			file9, // "202410251407_create_table_business_configs.up.sql"
 			filea, // "202410251408_create_table_user_actions.up.sql"
-			fileb, // "202410251409_create_table_user_permissions.sql"
+			fileb, // "202410251409_create_table_user_permissions.up.sql"
 			filec, // "202410251410_create_table_permissions.up.sql"
 			filed, // "202410251411_insert_permission_data_for_users.up.sql"
 			filee, // "202410251412_insert_permission_data_for_business.up.sql"
@@ -249,8 +249,8 @@ func init() {
 			files, // "202410282002_insert_permission_data_for_employees.up.sql"
 			filet, // "202410282003_insert_permission_data_for_employee_roles.up.sql"
 			fileu, // "202410282100_insert_permission_data_for_brands_webapp.up.sql"
-			filev, // "202410282101_insert_permission_data_for_business_webapp.up.sql"
-			filew, // "202410282102_insert_permission_data_for_companies_webapp.up.sql"
+			filev, // "202410282101_insert_permission_data_for_companies_webapp.up.sql"
+			filew, // "202410282102_insert_permission_data_for_business_webapp.up.sql"
 			filex, // "202410282103_insert_permission_data_for_employees_webapp.up.sql"
 			filey, // "202410282104_insert_permission_data_for_promos_webbapp.up.sql"
 			filez, // "202410292000_insert_permission_data_for_permissions.up.sql"
@@ -264,7 +264,7 @@ func init() {
 	// register embeddedBox
 	embedded.RegisterEmbeddedBox(`./migrations`, &embedded.EmbeddedBox{
 		Name: `./migrations`,
-		Time: time.Unix(1730207527, 0),
+		Time: time.Unix(1730549156, 0),
 		Dirs: map[string]*embedded.EmbeddedDir{
 			"": dir1,
 		},
@@ -278,7 +278,7 @@ func init() {
 			"202410251406_create_table_business.up.sql":                       file8,
 			"202410251407_create_table_business_configs.up.sql":               file9,
 			"202410251408_create_table_user_actions.up.sql":                   filea,
-			"202410251409_create_table_user_permissions.sql":                  fileb,
+			"202410251409_create_table_user_permissions.up.sql":               fileb,
 			"202410251410_create_table_permissions.up.sql":                    filec,
 			"202410251411_insert_permission_data_for_users.up.sql":            filed,
 			"202410251412_insert_permission_data_for_business.up.sql":         filee,
@@ -298,8 +298,8 @@ func init() {
 			"202410282002_insert_permission_data_for_employees.up.sql":        files,
 			"202410282003_insert_permission_data_for_employee_roles.up.sql":   filet,
 			"202410282100_insert_permission_data_for_brands_webapp.up.sql":    fileu,
-			"202410282101_insert_permission_data_for_business_webapp.up.sql":  filev,
-			"202410282102_insert_permission_data_for_companies_webapp.up.sql": filew,
+			"202410282101_insert_permission_data_for_companies_webapp.up.sql": filev,
+			"202410282102_insert_permission_data_for_business_webapp.up.sql":  filew,
 			"202410282103_insert_permission_data_for_employees_webapp.up.sql": filex,
 			"202410282104_insert_permission_data_for_promos_webbapp.up.sql":   filey,
 			"202410292000_insert_permission_data_for_permissions.up.sql":      filez,

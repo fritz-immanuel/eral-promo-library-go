@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
@@ -67,7 +69,7 @@ func (u *BusinessUsecase) Create(ctx *gin.Context, obj models.Business) (*models
 		Code:       obj.Code,
 		LogoImgURL: obj.LogoImgURL,
 		CompanyID:  obj.CompanyID,
-		StatusID:   obj.StatusID,
+		StatusID:   models.DEFAULT_STATUS_CODE,
 	}
 
 	result, err := u.businessRepo.Create(ctx, &data)
@@ -101,6 +103,15 @@ func (u *BusinessUsecase) Update(ctx *gin.Context, id string, obj models.Busines
 }
 
 func (u *BusinessUsecase) UpdateStatus(ctx *gin.Context, id string, newStatusID string) (*models.Business, *types.Error) {
+	if newStatusID != models.STATUS_ACTIVE && newStatusID != models.STATUS_INACTIVE {
+		return nil, &types.Error{
+			Path:       ".BusinessUsecase->UpdateStatus()",
+			Message:    "StatusID is not valid",
+			Error:      fmt.Errorf("StatusID is not valid"),
+			StatusCode: http.StatusBadRequest,
+		}
+	}
+
 	result, err := u.businessRepo.UpdateStatus(ctx, id, newStatusID)
 	if err != nil {
 		err.Path = ".BusinessUsecase->UpdateStatus()" + err.Path

@@ -90,6 +90,7 @@ func (h *EmployeeHandler) EmployeeProfile(c *gin.Context) {
 			return
 		}
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
+		return
 	}
 
 	dataresponse := types.Result{Status: "Sukses", StatusCode: http.StatusOK, Message: "Employee Profile fetched!", Data: result}
@@ -152,6 +153,7 @@ func (h *EmployeeHandler) UpdatePassword(c *gin.Context) {
 			return
 		}
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, *err)
+		return
 	}
 
 	var currentPassword = modelEmployee.Password

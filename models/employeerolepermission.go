@@ -6,7 +6,7 @@ import (
 
 type EmployeeRolePermissionBulk struct {
 	ID             string `json:"ID" db:"id"`
-	EmployeeRoleID string `json:"EmployeeRoleID" db:"user_id"`
+	EmployeeRoleID string `json:"EmployeeRoleID" db:"employee_role_id"`
 	PermissionID   int    `json:"PermissionID" db:"permission_id"`
 
 	PermissionPackage           string `json:"PermissionPackage" db:"permission_package"`
@@ -21,14 +21,14 @@ type EmployeeRolePermissionBulk struct {
 }
 
 type EmployeeRolePermission struct {
-	EmployeeRoleID string     `json:"EmployeeRoleID" db:"user_id"`
+	EmployeeRoleID string     `json:"EmployeeRoleID" db:"employee_role_id"`
 	PermissionID   int        `json:"PermissionID" db:"permission_id"`
 	Permission     Permission `json:"Permission" db:"-"`
 }
 
 type CreateUpdateEmployeeRolePermission struct {
 	ID             string `json:"ID" db:"id"`
-	EmployeeRoleID string `json:"EmployeeRoleID" db:"user_id"`
+	EmployeeRoleID string `json:"EmployeeRoleID" db:"employee_role_id"`
 	PermissionID   int    `json:"PermissionID" db:"permission_id"`
 }
 

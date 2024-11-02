@@ -47,6 +47,14 @@ func (s EmployeeRepository) FindAll(ctx *gin.Context, params models.FindAllEmplo
 		where += ` AND employees.password = :password`
 	}
 
+	if params.BusinessID != "" {
+		where += ` AND employees.business_id = :business_id`
+	}
+
+	if params.EmployeeRoleID != "" {
+		where += ` AND employees.employee_role_id = :employee_role_id`
+	}
+
 	if params.FindAllParams.SortBy != "" {
 		where = fmt.Sprintf("%s ORDER BY %s", where, params.FindAllParams.SortBy)
 	}
@@ -57,7 +65,7 @@ func (s EmployeeRepository) FindAll(ctx *gin.Context, params models.FindAllEmplo
 
 	query := fmt.Sprintf(`
   SELECT
-    employees.id, employees.name, employees.email, employees.password, employees.username,
+    employees.id, employees.name, employees.email, employees.password, employees.username, employees.business_id, employees.employee_role_id,
     employees.status_id, status.name AS status_name
   FROM employees
   JOIN status ON status.id = employees.status_id
@@ -65,12 +73,14 @@ func (s EmployeeRepository) FindAll(ctx *gin.Context, params models.FindAllEmplo
   `, where)
 
 	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
-		"limit":     params.FindAllParams.Size,
-		"offset":    ((params.FindAllParams.Page - 1) * params.FindAllParams.Size),
-		"status_id": params.FindAllParams.StatusID,
-		"email":     params.Email,
-		"username":  params.Username,
-		"password":  params.Password,
+		"limit":            params.FindAllParams.Size,
+		"offset":           ((params.FindAllParams.Page - 1) * params.FindAllParams.Size),
+		"status_id":        params.FindAllParams.StatusID,
+		"email":            params.Email,
+		"username":         params.Username,
+		"password":         params.Password,
+		"business_id":      params.BusinessID,
+		"employee_role_id": params.EmployeeRoleID,
 	})
 	if err != nil {
 		return nil, &types.Error{
@@ -84,12 +94,14 @@ func (s EmployeeRepository) FindAll(ctx *gin.Context, params models.FindAllEmplo
 
 	for _, v := range bulks {
 		obj := &models.Employee{
-			ID:       v.ID,
-			Name:     v.Name,
-			Email:    v.Email,
-			Username: v.Username,
-			Password: v.Password,
-			StatusID: v.StatusID,
+			ID:             v.ID,
+			Name:           v.Name,
+			Email:          v.Email,
+			Username:       v.Username,
+			Password:       v.Password,
+			BusinessID:     v.BusinessID,
+			EmployeeRoleID: v.EmployeeRoleID,
+			StatusID:       v.StatusID,
 			Status: models.Status{
 				ID:   v.StatusID,
 				Name: v.StatusName,
@@ -110,7 +122,7 @@ func (s EmployeeRepository) Find(ctx *gin.Context, id string) (*models.Employee,
 
 	query := `
   SELECT
-    employees.id, employees.name, employees.email, employees.password, employees.username,
+    employees.id, employees.name, employees.email, employees.password, employees.username, employees.business_id, employees.employee_role_id,
     employees.status_id, status.name AS status_name
   FROM employees
   JOIN status on status.id = employees.status_id
@@ -132,12 +144,14 @@ func (s EmployeeRepository) Find(ctx *gin.Context, id string) (*models.Employee,
 	if len(bulks) > 0 {
 		v := bulks[0]
 		result = models.Employee{
-			ID:       v.ID,
-			Name:     v.Name,
-			Email:    v.Email,
-			Username: v.Username,
-			Password: v.Password,
-			StatusID: v.StatusID,
+			ID:             v.ID,
+			Name:           v.Name,
+			Email:          v.Email,
+			Username:       v.Username,
+			Password:       v.Password,
+			BusinessID:     v.BusinessID,
+			EmployeeRoleID: v.EmployeeRoleID,
+			StatusID:       v.StatusID,
 			Status: models.Status{
 				ID:   v.StatusID,
 				Name: v.StatusName,
@@ -275,10 +289,10 @@ func (s EmployeeRepository) FindAllForLogin(ctx *gin.Context, params models.Find
 	query := fmt.Sprintf(`
   SELECT
     employees.id, employees.name, employees.email, employees.username, employees.business_id,
-		business.company_id, employees.status_id, employee_roles.is_supervisor
+    business.company_id, employees.status_id, employee_roles.is_supervisor
   FROM employees
-	JOIN business ON business.id = employees.business_id
-	JOIN employee_roles ON employees.employee_role_id = employee_roles.id
+  JOIN business ON business.id = employees.business_id
+  JOIN employee_roles ON employees.employee_role_id = employee_roles.id
   WHERE %s
   `, where)
 

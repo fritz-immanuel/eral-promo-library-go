@@ -50,6 +50,7 @@ func (s EmployeeBrandRepository) FindAll(ctx *gin.Context, params models.FindAll
   SELECT
     employee_brands.id, employee_brands.employee_id, employee_brands.brand_id
   FROM employee_brands
+	JOIN brands ON brands.id = employee_brands.brand_id
   WHERE %s
   `, where)
 

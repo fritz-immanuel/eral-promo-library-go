@@ -46,7 +46,7 @@ func (s BrandRepository) FindAll(ctx *gin.Context, params models.FindAllBrandPar
 
 	query := fmt.Sprintf(`
   SELECT
-    brands.id, brands.name, brands.code, brands.logo_img_url, brands.brand_id,
+    brands.id, brands.name, brands.code, brands.logo_img_url, brands.business_id,
     brands.status_id,
     status.name AS status_name
   FROM brands
@@ -96,7 +96,7 @@ func (s BrandRepository) Find(ctx *gin.Context, id string) (*models.Brand, *type
 
 	query := `
   SELECT
-    brands.id, brands.name, brands.code, brands.logo_img_url, brands.brand_id,
+    brands.id, brands.name, brands.code, brands.logo_img_url, brands.business_id,
     brands.status_id,
     status.name AS status_name
   FROM brands

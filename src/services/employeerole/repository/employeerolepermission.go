@@ -46,13 +46,13 @@ func (s EmployeeRolePermissionRepository) FindAll(ctx *gin.Context, params model
   SELECT
     employee_role_permissions.employee_role_id,
     employee_role_permissions.permission_id,
-    permission.package AS permission_package,
-    permission.module_name AS permission_module_name,
-    permission.action_name AS permission_action_name,
-    permission.http_method AS permission_http_method,
-    permission.route AS permission_route
+    permissions.package AS permission_package,
+    permissions.module_name AS permission_module_name,
+    permissions.action_name AS permission_action_name,
+    permissions.http_method AS permission_http_method,
+    permissions.route AS permission_route
   FROM employee_role_permissions
-  JOIN permission on permission.id = employee_role_permissions.permission_id
+  JOIN permissions on permissions.id = employee_role_permissions.permission_id
   WHERE %s
   `, where)
 
@@ -101,15 +101,15 @@ func (s EmployeeRolePermissionRepository) Find(ctx *gin.Context, id string) (*mo
   SELECT
     employee_role_permissions.employee_role_id,
     employee_role_permissions.permission_id,
-    permission.package AS permission_package,
-    permission.module_name AS permission_module_name,
-    permission.action_name AS permission_action_name,
-    permission.display_module_name AS permission_display_module_name,
-    permission.display_action_name AS permission_display_action_name,
-    permission.http_method AS permission_http_method,
-    permission.route AS permission_route
+    permissions.package AS permission_package,
+    permissions.module_name AS permission_module_name,
+    permissions.action_name AS permission_action_name,
+    permissions.display_module_name AS permission_display_module_name,
+    permissions.display_action_name AS permission_display_action_name,
+    permissions.http_method AS permission_http_method,
+    permissions.route AS permission_route
   FROM employee_role_permissions
-  JOIN permission on permission.id = employee_role_permissions.permission_id
+  JOIN permissions on permissions.id = employee_role_permissions.permission_id
   WHERE employee_role_permissions.id = :id`
 
 	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{})
@@ -172,7 +172,7 @@ func (s EmployeeRolePermissionRepository) Create(ctx *gin.Context, obj *models.C
 
 func (s EmployeeRolePermissionRepository) DeleteByEmployeeRoleID(ctx *gin.Context, id string) *types.Error {
 	args := make(map[string]interface{})
-	err := s.repository.ExecQuery(ctx, fmt.Sprintf("DELETE FROM employee_role_permissions WHERE employee_role_id = %s", id), args)
+	err := s.repository.ExecQuery(ctx, fmt.Sprintf(`DELETE FROM employee_role_permissions WHERE employee_role_id = "%s"`, id), args)
 	if err != nil {
 		return &types.Error{
 			Path:       ".EmployeeRolePermissionStorage->DeleteByEmployeeRoleID()",
@@ -208,7 +208,7 @@ func (s EmployeeRolePermissionRepository) CreateBunch(ctx *gin.Context, userID s
   INSERT INTO employee_role_permissions (employee_role_id, permission_id, created_at, updated_at)
   SELECT "%s", id, UTC_TIMESTAMP + INTERVAL 7 hour, UTC_TIMESTAMP + INTERVAL 7 HOUR
   FROM (
-    SELECT id FROM permission
+    SELECT id FROM permissions
     WHERE %s AND id %s IN (
       SELECT permission_id FROM employee_role_permissions
       WHERE employee_role_id = "%s"
