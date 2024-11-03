@@ -57,7 +57,10 @@ func (u *UserUsecase) Find(ctx *gin.Context, id string) (*models.User, *types.Er
 		return nil, err
 	}
 
-	result.Permission, err = u.userpermissionRepo.FindAll(ctx, models.FindAllUserPermissionParams{UserID: id})
+	var permissionParams models.FindAllUserPermissionParams
+	permissionParams.UserID = id
+	permissionParams.FindAllParams.SortBy = "permissions.module_name, permissions.sequence_number_detail ASC"
+	result.Permission, err = u.userpermissionRepo.FindAll(ctx, permissionParams)
 	if err != nil {
 		err.Path = ".UserUsecase->Find()" + err.Path
 		return nil, err
@@ -83,6 +86,23 @@ func (u *UserUsecase) Create(ctx *gin.Context, obj models.User) (*models.User, *
 		return nil, err
 	}
 
+	// check for duplicate username
+	users, err := u.userRepo.FindAll(ctx, models.FindAllUserParams{Username: obj.Username})
+	if err != nil {
+		err.Path = ".UserUsecase->Create()" + err.Path
+		return nil, err
+	}
+
+	if len(users) > 0 {
+		return nil, &types.Error{
+			Path:       ".UserUsecase->Create()",
+			Message:    "Username already exists",
+			Error:      data.ErrNotFound,
+			StatusCode: http.StatusUnprocessableEntity,
+			Type:       "mysql-error",
+		}
+	}
+
 	data := models.User{}
 	data.ID = uuid.New().String()
 	data.Name = obj.Name
@@ -105,6 +125,7 @@ func (u *UserUsecase) Create(ctx *gin.Context, obj models.User) (*models.User, *
 
 	var permissionParams models.FindAllUserPermissionParams
 	permissionParams.PermissionIDString = strings.Join(permssions, ",")
+	permissionParams.Not = 1
 	err = u.userpermissionRepo.CreateBunch(ctx, data.ID, permissionParams)
 	if err != nil {
 		err.Path = ".UserUsecase->Create()" + err.Path
@@ -119,6 +140,26 @@ func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.User) (*mod
 	if err != nil {
 		err.Path = ".UserUsecase->Update()" + err.Path
 		return nil, err
+	}
+
+	// check for duplicate username
+	var dupeParams models.FindAllUserParams
+	dupeParams.Username = obj.Username
+	dupeParams.FindAllParams.DataFinder = fmt.Sprintf(`users.id != '%s'`, id)
+	users, err := u.userRepo.FindAll(ctx, dupeParams)
+	if err != nil {
+		err.Path = ".UserUsecase->Update()" + err.Path
+		return nil, err
+	}
+
+	if len(users) > 0 {
+		return nil, &types.Error{
+			Path:       ".UserUsecase->Update()",
+			Message:    "Username already exists",
+			Error:      fmt.Errorf("Username already exists"),
+			StatusCode: http.StatusUnprocessableEntity,
+			Type:       "mysql-error",
+		}
 	}
 
 	data, err := u.userRepo.Find(ctx, id)
@@ -151,6 +192,7 @@ func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.User) (*mod
 
 	var permissionParams models.FindAllUserPermissionParams
 	permissionParams.PermissionIDString = strings.Join(permssions, ",")
+	permissionParams.Not = 1
 	err = u.userpermissionRepo.CreateBunch(ctx, data.ID, permissionParams)
 	if err != nil {
 		err.Path = ".UserUsecase->Update()" + err.Path
@@ -239,6 +281,7 @@ func (u *UserUsecase) Login(ctx *gin.Context, creds models.UserLogin) (*models.U
 		}
 	}
 
+	creds.ID = user.ID
 	creds.Name = user.Name
 	creds.Token = token
 	creds.Password = ""

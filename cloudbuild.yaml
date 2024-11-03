@@ -1,0 +1,14 @@
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'eral-promo-library-go'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/gcr.io/eral-promo-library/eral-promo-library-go:latest:$COMMIT_SHA'
+      - '--region'
+      - 'asia-northeast1'
+      - '--platform'
+      - 'managed'
+images:
+  - 'gcr.io/$PROJECT_ID/gcr.io/eral-promo-library/eral-promo-library-go:latest:$COMMIT_SHA'

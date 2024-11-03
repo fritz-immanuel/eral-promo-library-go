@@ -11,7 +11,8 @@ SELECT
 	"<user_id>",
 	id
 FROM
-	permissions;
+	permissions
+WHERE permissions.package = "WebsiteAdmin";
 
 -- Employee Role Permissions
 DELETE FROM
