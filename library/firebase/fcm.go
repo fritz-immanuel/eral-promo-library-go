@@ -142,7 +142,7 @@ func GenerateSignedURL(fileName string) (string, *types.Error) {
 	}
 
 	ctx := context.Background()
-	client, err := storage.NewClient(ctx)
+	client, err := storage.NewClient(ctx, option.WithCredentialsFile(config.FirebaseAuthFilePath))
 	if err != nil {
 		return "", newError(".GenerateSignedURL->NewClient", err)
 	}
@@ -152,7 +152,6 @@ func GenerateSignedURL(fileName string) (string, *types.Error) {
 		Scheme:  storage.SigningSchemeV4,
 		Method:  "GET",
 		Expires: time.Now().Add(15 * time.Minute),
-		
 	}
 
 	url, err := client.Bucket(config.FirebaseStorageBucketURL).SignedURL(fileName, opts)
