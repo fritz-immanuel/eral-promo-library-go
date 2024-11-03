@@ -48,7 +48,8 @@ func (s EmployeeBrandRepository) FindAll(ctx *gin.Context, params models.FindAll
 
 	query := fmt.Sprintf(`
   SELECT
-    employee_brands.id, employee_brands.employee_id, employee_brands.brand_id
+    employee_brands.id, employee_brands.employee_id, employee_brands.brand_id,
+		brands.name brand_name, brands.code brand_code
   FROM employee_brands
 	JOIN brands ON brands.id = employee_brands.brand_id
   WHERE %s
@@ -76,6 +77,11 @@ func (s EmployeeBrandRepository) FindAll(ctx *gin.Context, params models.FindAll
 			ID:         v.ID,
 			EmployeeID: v.EmployeeID,
 			BrandID:    v.BrandID,
+			Brand: &models.StringIDNameCodeTemplate{
+				ID:   v.BrandID,
+				Name: v.BrandName,
+				Code: v.BrandCode,
+			},
 		}
 
 		result = append(result, obj)
@@ -92,8 +98,10 @@ func (s EmployeeBrandRepository) Find(ctx *gin.Context, id string) (*models.Empl
 
 	query := `
   SELECT
-    employee_brands.id, employee_brands.employee_id, employee_brands.brand_id
+    employee_brands.id, employee_brands.employee_id, employee_brands.brand_id,
+		brands.name brand_name, brands.code brand_code
   FROM employee_brands
+	JOIN brands ON brands.id = employee_brands.brand_id
   WHERE employee_brands.id = :id`
 
 	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
@@ -115,6 +123,11 @@ func (s EmployeeBrandRepository) Find(ctx *gin.Context, id string) (*models.Empl
 			ID:         v.ID,
 			EmployeeID: v.EmployeeID,
 			BrandID:    v.BrandID,
+			Brand: &models.StringIDNameCodeTemplate{
+				ID:   v.BrandID,
+				Name: v.BrandName,
+				Code: v.BrandCode,
+			},
 		}
 	} else {
 		return nil, &types.Error{

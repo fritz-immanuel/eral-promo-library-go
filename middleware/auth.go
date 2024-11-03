@@ -15,7 +15,6 @@ import (
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
 	"github.com/fritz-immanuel/eral-promo-library-go/models"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -218,22 +217,23 @@ func AuthWebApp(c *gin.Context) {
 
 	// CheckIPClientIP(c, config)
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     config.RedisAddr,
-		Password: config.RedisPassword,
-		DB:       config.RedisDB,
-	})
+	// redisClient := redis.NewClient(&redis.Options{
+	// 	Addr:     config.RedisAddr,
+	// 	Password: config.RedisPassword,
+	// 	DB:       config.RedisDB,
+	// })
 
 	tokenString := c.Request.Header.Get("Authorization")
+
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if jwt.GetSigningMethod("HS256") != token.Method {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte("secret"), nil
+		return []byte("secretwebapp"), nil
 	})
 	if err != nil {
-		response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token Invalid"}
+		response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token Invalid 1"}
 		result := gin.H{
 			"result": response,
 		}
@@ -242,9 +242,9 @@ func AuthWebApp(c *gin.Context) {
 		return
 	}
 
-	claimJWT, ok := library.GetJWTClaims(c, tokenString)
+	claimJWT, ok := library.GetJWTWebAppClaims(c, tokenString)
 	if !ok {
-		response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token Invalid"}
+		response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token Invalid 2"}
 		result := gin.H{
 			"result": response,
 		}
@@ -253,51 +253,44 @@ func AuthWebApp(c *gin.Context) {
 		return
 	}
 
-	val, errRedis := redisClient.Get(tokenString).Result()
-	if errRedis != nil {
-		log.Printf(`
-    ======================================================================
-    Error Collecting Caching in "Auth":
-    Error: %v
-    ======================================================================
-    `, errRedis)
-		response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token is Expired"}
-		result := gin.H{
-			"result": response,
-		}
-		c.JSON(http.StatusUnauthorized, result)
-		c.Abort()
-		return
-	}
-	if val == "" {
-		response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token is Expired"}
-		result := gin.H{
-			"result": response,
-		}
-		c.JSON(http.StatusUnauthorized, result)
-		c.Abort()
-		return
-	}
+	// val, errRedis := redisClient.Get(tokenString).Result()
+	// if errRedis != nil {
+	// 	log.Printf(`
+	//   ======================================================================
+	//   Error Collecting Caching in "Auth":
+	//   Error: %v
+	//   ======================================================================
+	//   `, errRedis)
+	// 	response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token is Expired"}
+	// 	result := gin.H{
+	// 		"result": response,
+	// 	}
+	// 	c.JSON(http.StatusUnauthorized, result)
+	// 	c.Abort()
+	// 	return
+	// }
+	// if val == "" {
+	// 	response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token is Expired"}
+	// 	result := gin.H{
+	// 		"result": response,
+	// 	}
+	// 	c.JSON(http.StatusUnauthorized, result)
+	// 	c.Abort()
+	// 	return
+	// }
 
 	c.Set("SessionID", token)
-	c.Set("UserID", claimJWT["ID"])
+	c.Set("EmployeeID", claimJWT["ID"])
 	c.Set("UserName", claimJWT["Name"])
 	c.Set("Email", claimJWT["Email"])
 	c.Set("CompanyID", claimJWT["CompanyID"])
 	c.Set("BusinessID", claimJWT["BusinessID"])
+	c.Set("IsSupervisor", claimJWT["IsSupervisor"])
+	c.Set("Exp", claimJWT["Exp"])
 
-	if errRedis := redisClient.Set(
-		tokenString,
-		fmt.Sprintf("{\"id\":%s}", claimJWT["ID"]),
-		time.Second*time.Duration(config.RedisTimeOut),
-	).Err(); errRedis != nil {
-		log.Printf(`
-    ======================================================================
-    Error Storing Caching in "Auth":
-    Error     : %v,
-    ErrorRedis: %v
-    ======================================================================
-    `, err, errRedis)
+	expiryTime := *appcontext.TokenExpiryTime(c)
+	// println(">>>", expiryTime)
+	if time.Now().UTC().Add(time.Hour * time.Duration(7)).After(expiryTime) {
 		response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token is Expired"}
 		result := gin.H{
 			"result": response,
@@ -306,6 +299,27 @@ func AuthWebApp(c *gin.Context) {
 		c.Abort()
 		return
 	}
+
+	// if errRedis := redisClient.Set(
+	// 	tokenString,
+	// 	fmt.Sprintf("{\"id\":%s}", claimJWT["ID"]),
+	// 	time.Second*time.Duration(config.RedisTimeOut),
+	// ).Err(); errRedis != nil {
+	// 	log.Printf(`
+	//   ======================================================================
+	//   Error Storing Caching in "Auth":
+	//   Error     : %v,
+	//   ErrorRedis: %v
+	//   ======================================================================
+	//   `, err, errRedis)
+	// 	response := types.Result{Status: "Warning", StatusCode: http.StatusUnauthorized, Message: "Token is Expired"}
+	// 	result := gin.H{
+	// 		"result": response,
+	// 	}
+	// 	c.JSON(http.StatusUnauthorized, result)
+	// 	c.Abort()
+	// 	return
+	// }
 
 	// check hak akses
 	route := c.Request.RequestURI

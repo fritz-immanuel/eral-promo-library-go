@@ -37,37 +37,37 @@ Here is an example of what the `.env` file might look like:
 
 ```dotenv
 {
-	"SERVER_NAME": <server_name>,
+  "SERVER_NAME": <server_name>,
 
-	"DB_CONNECTION_STRING":"<user>:<password>@(host:port)/<db_name>?parseTime=true",
-	"PORT_APPS": ":9034",
+  "DB_CONNECTION_STRING":"<user>:<password>@(host:port)/<db_name>?parseTime=true",
+  "PORT_APPS": ":9034",
 
-	"APP_URL": "http://localhost:9034",
+  "APP_URL": "http://localhost:9034",
 
-	"ANDROID_APP_MINIMUM_VERSION": "1.0.0",
-	"IOS_APP_MINIMUM_VERSION": "1.0.0",
+  "ANDROID_APP_MINIMUM_VERSION": "1.0.0",
+  "IOS_APP_MINIMUM_VERSION": "1.0.0",
 
-	"EXTERNAL_URL": "",
-	"EXTERNAL_TOKEN": "",
-	"EXTERNAL_ACCESS_TOKEN": "",
+  "EXTERNAL_URL": "",
+  "EXTERNAL_TOKEN": "",
+  "EXTERNAL_ACCESS_TOKEN": "",
 
-	"REDIS_ADDR": "localhost:6379",
-	"REDIS_TIME_OUT": "259200",
-	"REDIS_DB": "0",
-	"REDIS_PASSWORD": "",
+  "REDIS_ADDR": "localhost:6379",
+  "REDIS_TIME_OUT": "259200",
+  "REDIS_DB": "0",
+  "REDIS_PASSWORD": "",
 
-	"SEND_WHATSAPP_API": "",
-	"SEND_WHATSAPP_TOKEN": "",
+  "SEND_WHATSAPP_API": "",
+  "SEND_WHATSAPP_TOKEN": "",
 
-	"TELE_BOT_TOKEN": "",
-	"TELE_GROUP_ID": "",
+  "TELE_BOT_TOKEN": "",
+  "TELE_GROUP_ID": "",
 
-	"FIREBASE_SERVER_KEY":<fb_server_key>,
-	"FIREBASE_SENDER_ID":<fb_sender_id>,
-	"FIREBASE_BUCKET_URL":<fb_bucket_url>,
-	"FIREBASE_AUTH_FILE_PATH":<fb_auth_file_path>,
+  "FIREBASE_SERVER_KEY":<fb_server_key>,
+  "FIREBASE_SENDER_ID":<fb_sender_id>,
+  "FIREBASE_BUCKET_URL":<fb_bucket_url>,
+  "FIREBASE_AUTH_FILE_PATH":<fb_auth_file_path>,
 
-	"WHITELISTED_IPS": "0.0.0.0"
+  "WHITELISTED_IPS": "0.0.0.0"
 }
 ```
 

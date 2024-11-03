@@ -37,8 +37,8 @@ type Promo struct {
 	StartDate        time.Time  `json:"StartDate" db:"start_date" validate:"required"`
 	EndDate          time.Time  `json:"EndDate" db:"end_date" validate:"required"`
 	ImgURL           string     `json:"ImgURL" db:"img_url"`
-	CompanyID        string     `json:"CompanyID" db:"company_id" validate:"required"`
-	BusinessID       string     `json:"BusinessID" db:"business_id" validate:"required"`
+	CompanyID        string     `json:"CompanyID" db:"company_id"`
+	BusinessID       string     `json:"BusinessID" db:"business_id"`
 	BrandID          string     `json:"BrandID" db:"brand_id" validate:"required"`
 	TotalPromoBudget float64    `json:"TotalPromoBudget" db:"total_promo_budget" validate:"required"`
 	PrincipleSupport float64    `json:"PrincipleSupport" db:"principle_support" validate:"required"`

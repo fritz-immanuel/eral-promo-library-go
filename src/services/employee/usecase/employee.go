@@ -244,7 +244,7 @@ func (u *EmployeeUsecase) Login(ctx *gin.Context, creds models.EmployeeLogin) (*
 	var employeeParams models.FindAllEmployeeParams
 	employeeParams.Username = creds.Username
 	employeeParams.Password = creds.Password
-	employeeParams.FindAllParams.StatusID = `status_id = 1`
+	employeeParams.FindAllParams.StatusID = `employees.status_id = 1`
 	employees, err := u.employeeRepo.FindAllForLogin(ctx, employeeParams)
 	if err != nil {
 		err.Path = ".EmployeeUsecase->Login()" + err.Path

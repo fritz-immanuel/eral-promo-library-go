@@ -1,6 +1,7 @@
 package brand
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
@@ -51,6 +52,7 @@ func (h *BrandHandler) FindAll(c *gin.Context) {
 	filterFindAllParams := helpers.FilterFindAllParam(c)
 	params.FindAllParams = filterFindAllParams
 	params.BusinessID = *appcontext.BusinessID(c)
+	params.FindAllParams.DataFinder = fmt.Sprintf(`brands.id IN (SELECT brand_id FROM employee_brands WHERE employee_id = "%s")`, *appcontext.EmployeeID(c))
 	datas, err := h.BrandUsecase.FindAll(c, params)
 	if err != nil {
 		if err.Error != data.ErrNotFound {

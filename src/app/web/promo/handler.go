@@ -194,8 +194,8 @@ func (h *PromoHandler) Create(c *gin.Context) {
 	var promo models.Promo
 	var dataPromo *models.Promo
 
-	if c.Query("StartDate") != "" {
-		startDateTime, errConversion := time.Parse(library.DateStampFormat(), c.Query("StartDate"))
+	if c.PostForm("StartDate") != "" {
+		startDateTime, errConversion := time.Parse(library.DateStampFormat(), c.PostForm("StartDate"))
 		if errConversion != nil {
 			err := &types.Error{
 				Path:       ".PromoHandler->Create()",
@@ -210,8 +210,8 @@ func (h *PromoHandler) Create(c *gin.Context) {
 		promo.StartDate = startDateTime
 	}
 
-	if c.Query("EndDate") != "" {
-		endDateTime, errConversion := time.Parse(library.DateStampFormat(), c.Query("EndDate"))
+	if c.PostForm("EndDate") != "" {
+		endDateTime, errConversion := time.Parse(library.DateStampFormat(), c.PostForm("EndDate"))
 		if errConversion != nil {
 			err := &types.Error{
 				Path:       ".PromoHandler->Create()",
@@ -301,8 +301,8 @@ func (h *PromoHandler) Update(c *gin.Context) {
 		return
 	}
 
-	if c.Query("StartDate") != "" {
-		startDateTime, errConversion := time.Parse(library.DateStampFormat(), c.Query("StartDate"))
+	if c.PostForm("StartDate") != "" {
+		startDateTime, errConversion := time.Parse(library.DateStampFormat(), c.PostForm("StartDate"))
 		if errConversion != nil {
 			err := &types.Error{
 				Path:       ".PromoHandler->Update()",
@@ -317,8 +317,8 @@ func (h *PromoHandler) Update(c *gin.Context) {
 		promo.StartDate = startDateTime
 	}
 
-	if c.Query("EndDate") != "" {
-		endDateTime, errConversion := time.Parse(library.DateStampFormat(), c.Query("EndDate"))
+	if c.PostForm("EndDate") != "" {
+		endDateTime, errConversion := time.Parse(library.DateStampFormat(), c.PostForm("EndDate"))
 		if errConversion != nil {
 			err := &types.Error{
 				Path:       ".PromoHandler->Update()",

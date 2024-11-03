@@ -39,6 +39,14 @@ func (s PromoRepository) FindAll(ctx *gin.Context, params models.FindAllPromoPar
 		where += fmt.Sprintf(` AND promos.%s`, params.FindAllParams.StatusID)
 	}
 
+	if params.StartDate != nil && !params.StartDate.IsZero() {
+		where += fmt.Sprintf(` AND promos.start_date >= "%s 00::00::00"`, params.StartDate.Format("2006-01-02"))
+	}
+
+	if params.EndDate != nil && !params.EndDate.IsZero() {
+		where += fmt.Sprintf(` AND promos.end_date <= "%s 23::59::59"`, params.EndDate.Format("2006-01-02"))
+	}
+
 	if params.CompanyID != "" {
 		where += ` AND promos.company_id = :company_id`
 	}
@@ -310,7 +318,7 @@ func (s PromoRepository) UpdateStatus(ctx *gin.Context, id string, statusID stri
 
 func (s PromoRepository) ApprovePromo(ctx *gin.Context, id string) (*models.Promo, *types.Error) {
 	args := make(map[string]interface{})
-	err := s.repository.ExecQuery(ctx, fmt.Sprintf(`UPDATE promos SET approved_at = NOW(), approved_by = "%s", rejected_at = NULL, rejected_by = "", reject_reason = "" WHERE id = "%s"`, *appcontext.UserID(ctx), id), args)
+	err := s.repository.ExecQuery(ctx, fmt.Sprintf(`UPDATE promos SET approved_at = NOW(), approved_by = "%s", rejected_at = NULL, rejected_by = "", reject_reason = "" WHERE id = "%s"`, *appcontext.EmployeeID(ctx), id), args)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".PromoStorage->ApprovePromo()",
@@ -338,7 +346,7 @@ func (s PromoRepository) ApprovePromo(ctx *gin.Context, id string) (*models.Prom
 
 func (s PromoRepository) RejectPromo(ctx *gin.Context, id string, rejectReason string) (*models.Promo, *types.Error) {
 	args := make(map[string]interface{})
-	err := s.repository.ExecQuery(ctx, fmt.Sprintf(`UPDATE promos SET approved_at = NULL, approved_by = "", rejected_at = NOW(), rejected_by = "%s", reject_reason = "%s" WHERE id = "%s"`, *appcontext.UserID(ctx), rejectReason, id), args)
+	err := s.repository.ExecQuery(ctx, fmt.Sprintf(`UPDATE promos SET approved_at = NULL, approved_by = "", rejected_at = NOW(), rejected_by = "%s", reject_reason = "%s" WHERE id = "%s"`, *appcontext.EmployeeID(ctx), rejectReason, id), args)
 	if err != nil {
 		return nil, &types.Error{
 			Path:       ".PromoStorage->RejectPromo()",

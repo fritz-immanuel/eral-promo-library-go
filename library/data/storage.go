@@ -307,6 +307,10 @@ func interfaceConversion(i interface{}) (map[string]interface{}, error) {
 // If immutable set true, it won't insert the updated_at
 func (r *MySQLStorage) Insert(ctx *gin.Context, elem interface{}) (*sql.Result, error) {
 	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
+
 	db := r.db
 	tx, ok := TxFromContext(ctx)
 	if ok {
@@ -347,6 +351,9 @@ func (r *MySQLStorage) Insert(ctx *gin.Context, elem interface{}) (*sql.Result, 
 
 func (r *MySQLStorage) InsertTrail(ctx *gin.Context, id string) (*sql.Result, error) {
 	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
 
 	db := r.db
 	tx, ok := TxFromContext(ctx)
@@ -467,6 +474,10 @@ func (r *LogStorage) insertArgs(currentUserID int, elem interface{}, index int) 
 // InsertMany is function for creating many datas into specific table in database.
 func (r *MySQLStorage) InsertMany(ctx *gin.Context, elem interface{}) error {
 	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
+
 	db := r.db
 	tx, ok := TxFromContext(ctx)
 	if ok {
@@ -557,6 +568,9 @@ func (r *MySQLStorage) InsertMany(ctx *gin.Context, elem interface{}) error {
 // InsertManyWithTime is function for creating many datas into specific table in database with specific created_at.
 func (r *MySQLStorage) InsertManyWithTime(ctx *gin.Context, elem interface{}, created_at time.Time) error {
 	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
 
 	sqlStr := fmt.Sprintf(`
   INSERT INTO "%s"(%s)
@@ -692,6 +706,9 @@ func (r *MySQLStorage) findChanges(existingElem interface{}, elem interface{}) m
 // It will update the "updated_at" field.
 func (r *MySQLStorage) Update(ctx *gin.Context, elem interface{}) error {
 	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
 
 	db := r.db
 	tx, ok := TxFromContext(ctx)
@@ -732,6 +749,9 @@ func (r *MySQLStorage) Update(ctx *gin.Context, elem interface{}) error {
 
 func (r *MySQLStorage) UpdateTrail(ctx *gin.Context, existingElem interface{}, elem interface{}, id interface{}) (*sql.Result, error) {
 	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
 
 	db := r.db
 	tx, ok := TxFromContext(ctx)
@@ -760,6 +780,9 @@ func (r *MySQLStorage) UpdateTrail(ctx *gin.Context, existingElem interface{}, e
 
 func (r *MySQLStorage) UpdateStatus(ctx *gin.Context, id string, status_code string) error {
 	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
 
 	db := r.db
 	tx, ok := TxFromContext(ctx)
@@ -805,6 +828,10 @@ func (r *MySQLStorage) UpdateStatus(ctx *gin.Context, id string, status_code str
 // It will update the "updated_at" field.
 func (r *MySQLStorage) UpdateMany(ctx *gin.Context, elems interface{}) error {
 	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
+
 	db := r.db
 	tx, ok := TxFromContext(ctx)
 	if ok {
@@ -1056,7 +1083,11 @@ func (r *MySQLStorage) updateArgs(currentUserID string, existingElem interface{}
 // Delete not really deletes the elem from the db, but it will set the
 // "deletedAt" column to current time.
 func (r *MySQLStorage) Delete(ctx *gin.Context, id interface{}) error {
-	currentUser := appcontext.UserID(ctx)
+	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
+
 	db := r.db
 	tx, ok := TxFromContext(ctx)
 	if ok {
@@ -1073,7 +1104,7 @@ func (r *MySQLStorage) Delete(ctx *gin.Context, id interface{}) error {
 	deleteArgs := map[string]interface{}{
 		"id":        id,
 		"deletedAt": library.UTCPlus7(),
-		"deletedBy": currentUser,
+		"deletedBy": currentUserID,
 	}
 	_, err = statement.Exec(deleteArgs)
 	if err != nil {
@@ -1412,6 +1443,10 @@ func readOnlyTag(dbTag string) bool {
 // If immutable set true, it won't insert the updated_at
 func (r *MySQLStorage) InsertNoTrail(ctx *gin.Context, elem interface{}) (*sql.Result, error) {
 	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
+
 	db := r.db
 	tx, ok := TxFromContext(ctx)
 	if ok {
@@ -1439,6 +1474,9 @@ func (r *MySQLStorage) InsertNoTrail(ctx *gin.Context, elem interface{}) (*sql.R
 // It will update the "updated_at" field.
 func (r *MySQLStorage) UpdateNoTrail(ctx *gin.Context, elem interface{}) error {
 	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
 
 	db := r.db
 	tx, ok := TxFromContext(ctx)

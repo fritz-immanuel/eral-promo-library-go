@@ -289,12 +289,14 @@ func (s EmployeeRepository) FindAllForLogin(ctx *gin.Context, params models.Find
 	query := fmt.Sprintf(`
   SELECT
     employees.id, employees.name, employees.email, employees.username, employees.business_id,
-    business.company_id, employees.status_id, employee_roles.is_supervisor
+    employees.employee_role_id, business.company_id, employees.status_id, employee_roles.is_supervisor
   FROM employees
   JOIN business ON business.id = employees.business_id
   JOIN employee_roles ON employees.employee_role_id = employee_roles.id
   WHERE %s
   `, where)
+
+	// fmt.Println(query)
 
 	err = s.repository.SelectWithQuery(ctx, &result, query, map[string]interface{}{
 		"limit":     params.FindAllParams.Size,

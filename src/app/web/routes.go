@@ -1,6 +1,7 @@
 package web
 
 import (
+	http_brand "github.com/fritz-immanuel/eral-promo-library-go/src/app/web/brand"
 	http_business "github.com/fritz-immanuel/eral-promo-library-go/src/app/web/business"
 	http_businessconfig "github.com/fritz-immanuel/eral-promo-library-go/src/app/web/businessconfig"
 	http_company "github.com/fritz-immanuel/eral-promo-library-go/src/app/web/company"
@@ -13,6 +14,7 @@ import (
 )
 
 var (
+	brandHandler          http_brand.BrandHandler
 	businessHandler       http_business.BusinessHandler
 	businessconfigHandler http_businessconfig.BusinessConfigHandler
 	companyHandler        http_company.CompanyHandler
@@ -23,6 +25,7 @@ var (
 func RegisterRoutes(db *sqlx.DB, dataManager *data.Manager, router *gin.Engine, v *gin.RouterGroup) {
 	v1 := v.Group("")
 	{
+		brandHandler.RegisterAPI(db, dataManager, router, v1)
 		businessHandler.RegisterAPI(db, dataManager, router, v1)
 		businessconfigHandler.RegisterAPI(db, dataManager, router, v1)
 		companyHandler.RegisterAPI(db, dataManager, router, v1)

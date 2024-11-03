@@ -1,7 +1,6 @@
 package library
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -9,7 +8,6 @@ import (
 	"github.com/fritz-immanuel/eral-promo-library-go/configs"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/appcontext"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis"
 )
 
 type Credential struct {
@@ -35,20 +33,6 @@ type CredentialWebApp struct {
 	EmployeeRoleID string `json:"EmployeeRoleID"`
 	IsSupervisor   int    `json:"IsSupervisor"`
 	Type           string `json:"Type"`
-
-	FsId         string `json:"fsid"`
-	ClientId     string `json:"clientid"`
-	ClientSecret string `json:"clientsecret"`
-	RefreshToken string `json:"refreshtoken"`
-}
-
-type CredentialMobile struct {
-	ID          string `json:"ID"`
-	Name        string `json:"Name"`
-	Username    string `json:"Username"`
-	Email       string `json:"Email"`
-	PhoneNumber string `json:"PhoneNumber"`
-	Type        string `json:"Type"`
 
 	FsId         string `json:"fsid"`
 	ClientId     string `json:"clientid"`
@@ -112,73 +96,47 @@ func JwtSignWebAppString(c CredentialWebApp) (string, error) {
 	claims["Exp"] = time.Now().Add(time.Hour * 72)
 	claims["Type"] = c.Type
 
-	config, _ := configs.GetConfiguration()
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     config.RedisAddr,
-		Password: config.RedisPassword,
-		DB:       config.RedisDB,
-	})
+	// config, _ := configs.GetConfiguration()
+	// redisClient := redis.NewClient(&redis.Options{
+	// 	Addr:     config.RedisAddr,
+	// 	Password: config.RedisPassword,
+	// 	DB:       config.RedisDB,
+	// })
 
-	token, err := sign.SignedString([]byte("secret"))
+	token, err := sign.SignedString([]byte("secretwebapp"))
 	if err != nil {
 		return "", err
 	}
 
-	if errRedis := redisClient.Set(
-		token,
-		fmt.Sprintf("{\"id\":%s}", c.ID),
-		time.Second*time.Duration(config.RedisTimeOut),
-	).Err(); errRedis != nil {
-		log.Printf(`
-		======================================================================
-		Error Storing Caching in "Auth":
-		Error: %v,
-		======================================================================
-		`, errRedis)
-		return "", errRedis
-	}
+	// if errRedis := redisClient.Set(
+	// 	token,
+	// 	fmt.Sprintf("{\"id\":%s}", c.ID),
+	// 	time.Second*time.Duration(config.RedisTimeOut),
+	// ).Err(); errRedis != nil {
+	// 	log.Printf(`
+	// 	======================================================================
+	// 	Error Storing Caching in "Auth":
+	// 	Error: %v,
+	// 	======================================================================
+	// 	`, errRedis)
+	// 	return "", errRedis
+	// }
+
 	return token, nil
 }
 
-func JwtSignMobileString(c CredentialMobile) (string, error) {
-	sign := jwt.New(jwt.GetSigningMethod("HS256"))
-	claims := sign.Claims.(jwt.MapClaims)
-
-	claims["ID"] = c.ID
-	claims["Name"] = c.Name
-	claims["Email"] = c.Email
-	claims["PhoneNumber"] = c.PhoneNumber
-	claims["LoginTime"] = time.Now()
-	claims["Exp"] = time.Now().Add(time.Hour * 72)
-	claims["Type"] = c.Type
-	// claims["BusinessID"] = c.BusinessID
-
-	config, _ := configs.GetConfiguration()
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     config.RedisAddr,
-		Password: config.RedisPassword,
-		DB:       config.RedisDB,
-	})
-
-	token, err := sign.SignedString([]byte("secretmobile"))
-	if err != nil {
-		return "", err
+func GetJWTClaims(ctx *gin.Context, token string) (jwt.MapClaims, bool) {
+	var claims jwt.MapClaims
+	var ok bool
+	if token == "" {
+		JwtActiveToken := appcontext.SessionID(ctx)
+		claims, ok = extractClaims(*JwtActiveToken)
+	} else {
+		JwtActiveToken := token
+		claims, ok = extractClaims(JwtActiveToken)
 	}
 
-	if errRedis := redisClient.Set(
-		token,
-		fmt.Sprintf("{\"id\":%s}", c.ID),
-		time.Second*time.Duration(config.RedisTimeOut),
-	).Err(); errRedis != nil {
-		log.Printf(`
-		======================================================================
-		Error Storing Caching in "Auth":
-		Error: %v,
-		======================================================================
-		`, errRedis)
-		return "", errRedis
-	}
-	return token, nil
+	return claims, ok
 }
 
 func extractClaims(tokenStr string) (jwt.MapClaims, bool) {
@@ -201,8 +159,22 @@ func extractClaims(tokenStr string) (jwt.MapClaims, bool) {
 	}
 }
 
-func extractMobileClaims(tokenStr string) (jwt.MapClaims, bool) {
-	hmacSecretString := "secretmobile" // Value
+func GetJWTWebAppClaims(ctx *gin.Context, token string) (jwt.MapClaims, bool) {
+	var claims jwt.MapClaims
+	var ok bool
+	if token == "" {
+		JwtActiveToken := appcontext.SessionID(ctx)
+		claims, ok = extractWebAppClaims(*JwtActiveToken)
+	} else {
+		JwtActiveToken := token
+		claims, ok = extractWebAppClaims(JwtActiveToken)
+
+	}
+	return claims, ok
+}
+
+func extractWebAppClaims(tokenStr string) (jwt.MapClaims, bool) {
+	hmacSecretString := "secretwebapp" // Value
 	hmacSecret := []byte(hmacSecretString)
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		// check token signing method etc
@@ -219,34 +191,6 @@ func extractMobileClaims(tokenStr string) (jwt.MapClaims, bool) {
 		log.Printf("Invalid JWT Token")
 		return nil, false
 	}
-}
-
-func GetJWTClaims(ctx *gin.Context, token string) (jwt.MapClaims, bool) {
-	var claims jwt.MapClaims
-	var ok bool
-	if token == "" {
-		JwtActiveToken := appcontext.SessionID(ctx)
-		claims, ok = extractClaims(*JwtActiveToken)
-	} else {
-		JwtActiveToken := token
-		claims, ok = extractClaims(JwtActiveToken)
-	}
-
-	return claims, ok
-}
-
-func GetJWTMobileClaims(ctx *gin.Context, token string) (jwt.MapClaims, bool) {
-	var claims jwt.MapClaims
-	var ok bool
-	if token == "" {
-		JwtActiveToken := appcontext.SessionID(ctx)
-		claims, ok = extractMobileClaims(*JwtActiveToken)
-	} else {
-		JwtActiveToken := token
-		claims, ok = extractMobileClaims(JwtActiveToken)
-
-	}
-	return claims, ok
 }
 
 func GetJWTClaimsMock() jwt.MapClaims {

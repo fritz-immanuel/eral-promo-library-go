@@ -169,7 +169,12 @@ func (s UserActionRepository) FindPermission(ctx *gin.Context, ModuleName string
 }
 
 func (s UserActionRepository) CreateManual(ctx *gin.Context, obj *models.UserAction) *types.Error {
-	insertQuery := fmt.Sprintf("INSERT INTO user_actions (id, user_id, table_name, action, ref_id, created_at) VALUES (UUID(), '%s', '%s', '%s', '%s', UTC_TIMESTAMP + INTERVAL 7 HOUR)", *appcontext.UserID(ctx), obj.TableName, obj.Action, obj.RefID)
+	currentUserID := appcontext.UserID(ctx)
+	if currentUserID == nil {
+		currentUserID = appcontext.EmployeeID(ctx)
+	}
+
+	insertQuery := fmt.Sprintf("INSERT INTO user_actions (id, user_id, table_name, action, ref_id, created_at) VALUES (UUID(), '%s', '%s', '%s', '%s', UTC_TIMESTAMP + INTERVAL 7 HOUR)", *currentUserID, obj.TableName, obj.Action, obj.RefID)
 
 	err := s.repository.ExecQuery(ctx, insertQuery, nil)
 	if err != nil {
