@@ -17,8 +17,8 @@ RUN go build -o eral-promo-library-go
 # Use a minimal base image to reduce the size of the container
 FROM alpine:latest
 
-# Set environment variable to specify port (optional but recommended for clarity)
-ENV PORT=9034
+# Set the PORT environment variable to 8080 for Cloud Run
+ENV PORT=8080
 
 # Copy the built application binary from the builder image
 COPY --from=builder /app/eral-promo-library-go /eral-promo-library-go
@@ -26,5 +26,5 @@ COPY --from=builder /app/eral-promo-library-go /eral-promo-library-go
 # Expose port 8080 for Cloud Run (internal routing port)
 EXPOSE 8080
 
-# Start the application and map port 8080 to 9034 for internal requests
+# Start the application and use the PORT environment variable
 CMD ["sh", "-c", "/eral-promo-library-go --port=$PORT"]
