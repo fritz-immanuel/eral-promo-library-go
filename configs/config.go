@@ -1,6 +1,8 @@
 package configs
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -30,8 +32,6 @@ const (
 	teleBotToken = "TELE_BOT_TOKEN"
 	teleGroupID  = "TELE_GROUP_ID"
 
-	firebaseServerKey        = "FIREBASE_SERVER_KEY"
-	firebaseSenderID         = "FIREBASE_SENDER_ID"
 	firebaseStorageBucketURL = "FIREBASE_BUCKET_URL"
 	firebaseAuthFilePath     = "FIREBASE_AUTH_FILE_PATH"
 
@@ -76,8 +76,6 @@ type Config struct {
 	TeleGroupID  string
 
 	// Firebase
-	FirebaseServerKey        string
-	FirebaseSenderID         string
 	FirebaseStorageBucketURL string
 	FirebaseAuthFilePath     string
 
@@ -101,39 +99,63 @@ func GetConfiguration() (*Config, error) {
 		return config, nil
 	}
 
-	config := &Config{}
+	var dataENV []byte
+	var err error
 
-	config.AndroidAppMinimumVersion = os.Getenv(androidAppMinimumVersion)
-	config.IosAppMinimumVersion = os.Getenv(iosAppMinimumVersion)
+	if os.Getenv("epl-env") == "" {
+		dataENV, err = os.ReadFile(".env")
+		if err != nil {
+			fmt.Println("File reading error", err)
+			return nil, fmt.Errorf("failed to locate env file: %v", err)
+		}
+	} else {
+		dataENV = []byte(os.Getenv("epl-env"))
+	}
 
-	config.ExternalURL = os.Getenv(externalURL)
-	config.ExternalToken = os.Getenv(externalToken)
-	config.ExternalAccessToken = os.Getenv(externalAccessToken)
+	var result map[string]interface{}
+	json.Unmarshal(dataENV, &result)
 
-	config.DBConnectionString = os.Getenv(dbConnectionString)
+	redisDBi, err := strconv.Atoi(result[redisDB].(string))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse redis db: %v", err)
+	}
 
-	config.PortApps = os.Getenv(portApps)
+	redisTimeOut, err := strconv.Atoi(result[redisTimeOut].(string)) // 3 days
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse redis timeout: %v", err)
+	}
 
-	config.RedisAddr = os.Getenv(redisAddr)
-	config.RedisDB, _ = strconv.Atoi(os.Getenv(redisDB))
-	config.RedisPassword = os.Getenv(redisPassword)
-	config.RedisTimeOut, _ = strconv.Atoi(os.Getenv(redisTimeOut))
+	config := &Config{
+		AndroidAppMinimumVersion: result[androidAppMinimumVersion].(string),
+		IosAppMinimumVersion:     result[iosAppMinimumVersion].(string),
 
-	config.SendWhatsappAPI = os.Getenv(sendWhatsappAPI)
-	config.SendWhatsappToken = os.Getenv(sendWhatsappToken)
+		ExternalURL:         result[externalURL].(string),
+		ExternalToken:       result[externalToken].(string),
+		ExternalAccessToken: result[externalAccessToken].(string),
 
-	// TELEGRAM
-	config.TeleBotToken = os.Getenv(teleBotToken)
-	config.TeleGroupID = os.Getenv(teleGroupID)
+		DBConnectionString: result[dbConnectionString].(string),
 
-	config.FirebaseServerKey = os.Getenv(firebaseServerKey)
-	config.FirebaseAuthFilePath = os.Getenv(firebaseAuthFilePath)
-	config.FirebaseStorageBucketURL = os.Getenv(firebaseStorageBucketURL)
-	config.FirebaseSenderID = os.Getenv(firebaseSenderID)
+		PortApps: result[portApps].(string),
 
-	config.AppURL = os.Getenv(appUrl)
-	config.WhitelistedIps = os.Getenv(whitelistedIps)
-	config.ServerName = os.Getenv(serverName)
+		RedisAddr:     result[redisAddr].(string),
+		RedisDB:       redisDBi,
+		RedisPassword: result[redisPassword].(string),
+		RedisTimeOut:  redisTimeOut,
+
+		SendWhatsappAPI:   result[sendWhatsappAPI].(string),
+		SendWhatsappToken: result[sendWhatsappToken].(string),
+
+		// TELEGRAM
+		TeleBotToken: result[teleBotToken].(string),
+		TeleGroupID:  result[teleGroupID].(string),
+
+		FirebaseAuthFilePath:     result[firebaseAuthFilePath].(string),
+		FirebaseStorageBucketURL: result[firebaseStorageBucketURL].(string),
+
+		AppURL:         result[appUrl].(string),
+		WhitelistedIps: result[whitelistedIps].(string),
+		ServerName:     result[serverName].(string),
+	}
 
 	return config, nil
 }
