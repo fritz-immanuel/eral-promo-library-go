@@ -69,6 +69,7 @@ import (
 	"strconv"
 
 	"github.com/fritz-immanuel/eral-promo-library-go/configs"
+	"github.com/jmoiron/sqlx"
 )
 
 func main() {
@@ -92,6 +93,12 @@ func main() {
 	}
 
 	configs.AppConfig = config
+
+	db, err := sqlx.Open("mysql", config.DBConnectionString)
+	if err != nil {
+		log.Fatalln("failed to open database x: ", err)
+	}
+	defer db.Close()
 
 	// Create a simple HTTP handler
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
