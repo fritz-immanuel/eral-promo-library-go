@@ -96,6 +96,7 @@ func main() {
 
 	db, err := sqlx.Open("mysql", config.DBConnectionString)
 	if err != nil {
+		fmt.Println("HELLO, YOUR SQL CONN IS FUKED", err)
 		log.Fatalln("failed to open database x: ", err)
 	}
 	defer db.Close()
