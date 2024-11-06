@@ -84,6 +84,8 @@ func main() {
 		return
 	}
 
+	fmt.Println("HELLO, IM NOW TRYING TO RUN...", port)
+
 	config, err := configs.GetConfiguration()
 	if err != nil {
 		log.Fatalln("failed to get configuration: ", err)
