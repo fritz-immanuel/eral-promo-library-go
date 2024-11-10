@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/fritz-immanuel/eral-promo-library-go/library/data"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/types"
@@ -276,6 +277,18 @@ func (s EmployeeRepository) FindAllForLogin(ctx *gin.Context, params models.Find
 
 	if params.Password != "" {
 		where += ` AND employees.password = :password`
+	}
+
+	if params.EmployeeRoleID != "" {
+		explode := strings.Split(params.EmployeeRoleID, ",")
+		for idx, b := range explode {
+			if b != "-1" && b != "" && b != "0" {
+				explode[idx] = fmt.Sprintf(`"%s"`, b)
+			}
+		}
+		JoinString := strings.Join(explode, ",")
+
+		where += fmt.Sprintf(` AND employees.employee_role_id IN (%s)`, JoinString)
 	}
 
 	if params.FindAllParams.SortBy != "" {

@@ -32,6 +32,10 @@ func (s BusinessRepository) FindAll(ctx *gin.Context, params models.FindAllBusin
 		where = fmt.Sprintf("%s AND %s", where, params.FindAllParams.DataFinder)
 	}
 
+	if params.FindAllParams.CompanyID != "" {
+		where += fmt.Sprintf(` AND business.%s`, params.FindAllParams.CompanyID)
+	}
+
 	if params.FindAllParams.StatusID != "" {
 		where += fmt.Sprintf(` AND business.%s`, params.FindAllParams.StatusID)
 	}

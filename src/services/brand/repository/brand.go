@@ -32,6 +32,10 @@ func (s BrandRepository) FindAll(ctx *gin.Context, params models.FindAllBrandPar
 		where = fmt.Sprintf("%s AND %s", where, params.FindAllParams.DataFinder)
 	}
 
+	if params.FindAllParams.BusinessID != "" {
+		where += fmt.Sprintf(` AND brands.%s`, params.FindAllParams.BusinessID)
+	}
+
 	if params.FindAllParams.StatusID != "" {
 		where += fmt.Sprintf(` AND brands.%s`, params.FindAllParams.StatusID)
 	}

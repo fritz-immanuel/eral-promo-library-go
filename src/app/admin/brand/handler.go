@@ -58,7 +58,9 @@ func (h *BrandHandler) FindAll(c *gin.Context) {
 	page, size := helpers.FilterFindAll(c)
 	filterFindAllParams := helpers.FilterFindAllParam(c)
 	params.FindAllParams = filterFindAllParams
-	params.FindAllParams.SortBy = "brands.name ASC"
+	if c.Query("SortName") == "" || c.Query("SortBy") == "" {
+		params.FindAllParams.SortBy = "brands.name ASC"
+	}
 	datas, err := h.BrandUsecase.FindAll(c, params)
 	if err != nil {
 		if err.Error != data.ErrNotFound {

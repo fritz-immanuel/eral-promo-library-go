@@ -59,7 +59,9 @@ func (h *BusinessHandler) FindAll(c *gin.Context) {
 	page, size := helpers.FilterFindAll(c)
 	filterFindAllParams := helpers.FilterFindAllParam(c)
 	params.FindAllParams = filterFindAllParams
-	params.FindAllParams.SortBy = "business.name ASC"
+	if c.Query("SortName") == "" || c.Query("SortBy") == "" {
+		params.FindAllParams.SortBy = "business.name ASC"
+	}
 	datas, err := h.BusinessUsecase.FindAll(c, params)
 	if err != nil {
 		if err.Error != data.ErrNotFound {

@@ -66,6 +66,9 @@ func (h *EmployeeRoleHandler) FindAll(c *gin.Context) {
 	page, size := helpers.FilterFindAll(c)
 	filterFindAllParams := helpers.FilterFindAllParam(c)
 	params.FindAllParams = filterFindAllParams
+	if c.Query("SortName") == "" || c.Query("SortBy") == "" {
+		params.FindAllParams.SortBy = "employee_roles.name ASC"
+	}
 	datas, err := h.EmployeeRoleUsecase.FindAll(c, params)
 	if err != nil {
 		if err.Error != data.ErrNotFound {

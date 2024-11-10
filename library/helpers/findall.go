@@ -159,6 +159,7 @@ func FilterFindAllParam(c *gin.Context) types.FindAllParams {
 	findallparams = types.FindAllParams{Page: page, Size: size, StatusID: statusID, DataFinder: dataFinder, SortName: sortName, SortBy: sort, BusinessID: businessID, CompanyID: companyID, Outlets: Outlets}
 	return findallparams
 }
+
 func sanitize(text string) string {
 	return strings.NewReplacer("'", "", `"`, "").Replace(text)
 }

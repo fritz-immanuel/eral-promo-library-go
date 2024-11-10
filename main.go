@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -8,12 +9,13 @@ import (
 	"github.com/fritz-immanuel/eral-promo-library-go/databases"
 	"github.com/fritz-immanuel/eral-promo-library-go/library/data"
 	"github.com/fritz-immanuel/eral-promo-library-go/src/routes"
+	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
 
 func main() {
-	// gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode)
 	os.Setenv("TZ", "Asia/Jakarta")
 
 	config, err := configs.GetConfiguration()
@@ -35,6 +37,6 @@ func main() {
 
 	databases.MigrateUp()
 
-	// fmt.Println("Server is running...")
+	fmt.Println("Server is running...")
 	routes.RegisterRoutes(db, config, dataManager)
 }
