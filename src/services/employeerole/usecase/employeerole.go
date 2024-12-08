@@ -99,6 +99,8 @@ func (u *EmployeeRoleUsecase) Create(ctx *gin.Context, obj models.EmployeeRole) 
 
 	var permissionParams models.FindAllEmployeeRolePermissionParams
 	permissionParams.PermissionIDString = strings.Join(permssions, ",")
+	permissionParams.EmployeeRoleID = data.ID
+	permissionParams.Not = 1
 	err = u.employeerolepermissionRepo.CreateBunch(ctx, data.ID, permissionParams)
 	if err != nil {
 		err.Path = ".EmployeeRoleUsecase->Create()" + err.Path
@@ -144,6 +146,8 @@ func (u *EmployeeRoleUsecase) Update(ctx *gin.Context, id string, obj models.Emp
 
 	var permissionParams models.FindAllEmployeeRolePermissionParams
 	permissionParams.PermissionIDString = strings.Join(permssions, ",")
+	permissionParams.EmployeeRoleID = id
+	permissionParams.Not = 1
 	err = u.employeerolepermissionRepo.CreateBunch(ctx, data.ID, permissionParams)
 	if err != nil {
 		err.Path = ".EmployeeRoleUsecase->Update()" + err.Path

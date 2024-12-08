@@ -58,6 +58,8 @@ func (s BrandRepository) FindAll(ctx *gin.Context, params models.FindAllBrandPar
   WHERE %s
   `, where)
 
+	// fmt.Println(query)
+
 	err = s.repository.SelectWithQuery(ctx, &bulks, query, map[string]interface{}{
 		"limit":  params.FindAllParams.Size,
 		"offset": ((params.FindAllParams.Page - 1) * params.FindAllParams.Size),

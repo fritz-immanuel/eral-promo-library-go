@@ -130,24 +130,29 @@ func FilterFindAllParam(c *gin.Context) types.FindAllParams {
 	}
 
 	cID, _ := MultiValueUUIDCheck(companyID) // make sure its all UUID
-	explodeCompany := strings.Split(cID, ",")
-	for idx, b := range explodeCompany {
-		if b != "-1" && b != "" && b != "0" {
-			explodeCompany[idx] = fmt.Sprintf(`"%s"`, b)
+	if cID != "" {
+		explodeCompany := strings.Split(cID, ",")
+		for idx, b := range explodeCompany {
+			if b != "-1" && b != "" && b != "0" {
+				explodeCompany[idx] = fmt.Sprintf(`"%s"`, b)
+			}
 		}
+		JoinStringCompany := strings.Join(explodeCompany, ",")
+		companyID = "company_id IN (" + JoinStringCompany + ")"
 	}
-	JoinStringCompany := strings.Join(explodeCompany, ",")
-	companyID = "company_id IN (" + JoinStringCompany + ")"
 
 	bID, _ := MultiValueUUIDCheck(businessID) // make sure its all UUID
-	explodeBusiness := strings.Split(bID, ",")
-	for idx, b := range explodeBusiness {
-		if b != "-1" && b != "" && b != "0" {
-			explodeBusiness[idx] = fmt.Sprintf(`"%s"`, b)
+	if bID != "" {
+		explodeBusiness := strings.Split(bID, ",")
+		fmt.Println(">>", explodeBusiness)
+		for idx, b := range explodeBusiness {
+			if b != "-1" && b != "" && b != "0" {
+				explodeBusiness[idx] = fmt.Sprintf(`"%s"`, b)
+			}
 		}
+		JoinStringBusiness := strings.Join(explodeBusiness, ",")
+		businessID = "business_id IN (" + JoinStringBusiness + ")"
 	}
-	JoinStringBusiness := strings.Join(explodeBusiness, ",")
-	businessID = "business_id IN (" + JoinStringBusiness + ")"
 
 	if sortName != "" {
 		sort = GetSortBy(sortName, sortBy)

@@ -205,8 +205,8 @@ func (s EmployeeRolePermissionRepository) CreateBunch(ctx *gin.Context, userID s
 	}
 
 	query := fmt.Sprintf(`
-  INSERT INTO employee_role_permissions (employee_role_id, permission_id, created_at, updated_at)
-  SELECT "%s", id, UTC_TIMESTAMP + INTERVAL 7 hour, UTC_TIMESTAMP + INTERVAL 7 HOUR
+  INSERT INTO employee_role_permissions (id, employee_role_id, permission_id, created_at, updated_at)
+  SELECT UUID(), "%s", id, UTC_TIMESTAMP + INTERVAL 7 hour, UTC_TIMESTAMP + INTERVAL 7 HOUR
   FROM (
     SELECT id FROM permissions
     WHERE %s AND id %s IN (
@@ -214,6 +214,8 @@ func (s EmployeeRolePermissionRepository) CreateBunch(ctx *gin.Context, userID s
       WHERE employee_role_id = "%s"
     )
   ) permission`, userID, where, not, params.EmployeeRoleID)
+
+	// fmt.Println(query)
 
 	err := s.repository.ExecQuery(ctx, query, args)
 	if err != nil {
