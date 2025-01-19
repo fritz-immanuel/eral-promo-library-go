@@ -11,11 +11,12 @@ import (
 )
 
 type Credential struct {
-	ID       string `json:"ID"`
-	Name     string `json:"Name"`
-	Username string `json:"Username"`
-	Email    string `json:"Email"`
-	Type     string `json:"Type"`
+	ID          string `json:"ID"`
+	Name        string `json:"Name"`
+	Username    string `json:"Username"`
+	Email       string `json:"Email"`
+	Type        string `json:"Type"`
+	Permissions string `json:"Permissions"`
 
 	FsId         string `json:"fsid"`
 	ClientId     string `json:"clientid"`
@@ -33,6 +34,7 @@ type CredentialWebApp struct {
 	EmployeeRoleID string `json:"EmployeeRoleID"`
 	IsSupervisor   int    `json:"IsSupervisor"`
 	Type           string `json:"Type"`
+	Permissions    string `json:"Permissions"`
 
 	FsId         string `json:"fsid"`
 	ClientId     string `json:"clientid"`

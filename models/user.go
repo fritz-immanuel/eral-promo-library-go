@@ -23,7 +23,7 @@ type User struct {
 
 	Status Status `json:"Status"`
 
-	Permission []*UserPermission `json:"Permission"`
+	Permissions []*UserPermission `json:"Permissions"`
 }
 
 type FindAllUserParams struct {
@@ -39,6 +39,8 @@ type UserLogin struct {
 	Password string `json:"Password" validate:"required"`
 	Token    string `json:"Token"`
 	Username string `json:"Username" validate:"required"`
+
+	Permissions []*UserPermission `json:"Permissions"`
 }
 
 type UserLoginAPI struct {

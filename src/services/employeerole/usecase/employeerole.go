@@ -53,7 +53,7 @@ func (u *EmployeeRoleUsecase) Find(ctx *gin.Context, id string) (*models.Employe
 		return nil, err
 	}
 
-	result.Permission, err = u.employeerolepermissionRepo.FindAll(ctx, models.FindAllEmployeeRolePermissionParams{EmployeeRoleID: id})
+	result.Permissions, err = u.employeerolepermissionRepo.FindAll(ctx, models.FindAllEmployeeRolePermissionParams{EmployeeRoleID: id})
 	if err != nil {
 		err.Path = ".EmployeeRoleUsecase->Find()" + err.Path
 		return nil, err
@@ -93,7 +93,7 @@ func (u *EmployeeRoleUsecase) Create(ctx *gin.Context, obj models.EmployeeRole) 
 
 	// create permission
 	var permssions []string
-	for _, v := range obj.Permission {
+	for _, v := range obj.Permissions {
 		permssions = append(permssions, fmt.Sprintf(`%d`, v.PermissionID))
 	}
 
@@ -140,7 +140,7 @@ func (u *EmployeeRoleUsecase) Update(ctx *gin.Context, id string, obj models.Emp
 	}
 
 	var permssions []string
-	for _, v := range obj.Permission {
+	for _, v := range obj.Permissions {
 		permssions = append(permssions, fmt.Sprintf(`%d`, v.PermissionID))
 	}
 

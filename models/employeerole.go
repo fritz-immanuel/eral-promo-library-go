@@ -21,7 +21,7 @@ type EmployeeRole struct {
 
 	Status Status `json:"Status"`
 
-	Permission []*EmployeeRolePermission `json:"Permission"`
+	Permissions []*EmployeeRolePermission `json:"Permissions"`
 }
 
 type FindAllEmployeeRoleParams struct {

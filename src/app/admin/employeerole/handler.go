@@ -130,7 +130,7 @@ func (h *EmployeeRoleHandler) Create(c *gin.Context) {
 	employeerole.Name = c.PostForm("Name")
 	employeerole.IsSupervisor, _ = strconv.Atoi(c.PostForm("IsSupervisor"))
 
-	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &employeerole.Permission)
+	errJson := json.Unmarshal([]byte(c.PostForm("Permissions")), &employeerole.Permissions)
 	if errJson != nil {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, types.Error{
 			Path:  ".EmployeeRoleHandler->Create()",
@@ -177,7 +177,7 @@ func (h *EmployeeRoleHandler) Update(c *gin.Context) {
 	employeerole.Name = c.PostForm("Name")
 	employeerole.IsSupervisor, _ = strconv.Atoi(c.PostForm("IsSupervisor"))
 
-	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &employeerole.Permission)
+	errJson := json.Unmarshal([]byte(c.PostForm("Permissions")), &employeerole.Permissions)
 	if errJson != nil {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, types.Error{
 			Path:  ".EmployeeRoleHandler->Update()",

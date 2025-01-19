@@ -65,6 +65,14 @@ func (u *EmployeeUsecase) Find(ctx *gin.Context, id string) (*models.Employee, *
 		return nil, err
 	}
 
+	employeeRole, err := u.employeeroleUsecase.Find(ctx, result.EmployeeRoleID)
+	if err != nil {
+		err.Path = ".EmployeeUsecase->Find()" + err.Path
+		return nil, err
+	}
+
+	result.Permissions = employeeRole.Permissions
+
 	return result, err
 }
 
@@ -290,7 +298,7 @@ func (u *EmployeeUsecase) Login(ctx *gin.Context, creds models.EmployeeLogin) (*
 		return nil, err
 	}
 
-	creds.Permissions = employeeRole.Permission
+	creds.Permissions = employeeRole.Permissions
 	creds.Name = employee.Name
 	creds.Token = token
 	creds.Password = ""

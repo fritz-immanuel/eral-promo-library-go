@@ -28,6 +28,8 @@ type Employee struct {
 	Status Status `json:"Status"`
 
 	Brands []*EmployeeBrand `json:"Brands"`
+
+	Permissions []*EmployeeRolePermission `json:"Permissions"`
 }
 
 type FindAllEmployeeParams struct {

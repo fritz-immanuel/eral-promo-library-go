@@ -60,7 +60,7 @@ func (u *UserUsecase) Find(ctx *gin.Context, id string) (*models.User, *types.Er
 	var permissionParams models.FindAllUserPermissionParams
 	permissionParams.UserID = id
 	permissionParams.FindAllParams.SortBy = "permissions.module_name, permissions.sequence_number_detail ASC"
-	result.Permission, err = u.userpermissionRepo.FindAll(ctx, permissionParams)
+	result.Permissions, err = u.userpermissionRepo.FindAll(ctx, permissionParams)
 	if err != nil {
 		err.Path = ".UserUsecase->Find()" + err.Path
 		return nil, err
@@ -119,7 +119,7 @@ func (u *UserUsecase) Create(ctx *gin.Context, obj models.User) (*models.User, *
 
 	// create permission
 	var permssions []string
-	for _, v := range obj.Permission {
+	for _, v := range obj.Permissions {
 		permssions = append(permssions, fmt.Sprintf(`%d`, v.PermissionID))
 	}
 
@@ -186,7 +186,7 @@ func (u *UserUsecase) Update(ctx *gin.Context, id string, obj models.User) (*mod
 	}
 
 	var permssions []string
-	for _, v := range obj.Permission {
+	for _, v := range obj.Permissions {
 		permssions = append(permssions, fmt.Sprintf(`%d`, v.PermissionID))
 	}
 
@@ -279,6 +279,15 @@ func (u *UserUsecase) Login(ctx *gin.Context, creds models.UserLogin) (*models.U
 			Path:       ".UserUsecase->Login()",
 			StatusCode: http.StatusInternalServerError,
 		}
+	}
+
+	var permissionParams models.FindAllUserPermissionParams
+	permissionParams.UserID = user.ID
+	permissionParams.FindAllParams.SortBy = "permissions.module_name, permissions.sequence_number_detail ASC"
+	creds.Permissions, err = u.userpermissionRepo.FindAll(ctx, permissionParams)
+	if err != nil {
+		err.Path = ".UserUsecase->Find()" + err.Path
+		return nil, err
 	}
 
 	creds.ID = user.ID

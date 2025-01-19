@@ -154,7 +154,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 	user.Username = c.PostForm("Username")
 	user.Password = fmt.Sprintf("%x", hash.Sum(nil))
 
-	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &user.Permission)
+	errJson := json.Unmarshal([]byte(c.PostForm("Permissions")), &user.Permissions)
 	if errJson != nil {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, types.Error{
 			Path:  ".UserHandler->Create()",
@@ -209,7 +209,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 	}
 	user.Username = c.PostForm("Username")
 
-	errJson := json.Unmarshal([]byte(c.PostForm("Permission")), &user.Permission)
+	errJson := json.Unmarshal([]byte(c.PostForm("Permissions")), &user.Permissions)
 	if errJson != nil {
 		response.Error(c, "Internal Server Error", http.StatusInternalServerError, types.Error{
 			Path:  ".UserHandler->Update()",
